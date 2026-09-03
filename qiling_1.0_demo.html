@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>炁灵 QILING · 1.0 Demo — 音频驱动数字生命</title>
+<style>
+  :root{--acc:#94D4D0;--acc2:#2A7A78;--txt:#EAF6F5;--dim:#9FB5B3;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#081110;color:var(--txt);font-family:'Roboto','PingFang SC','Segoe UI',Arial,sans-serif;overflow:hidden;height:100vh;}
+  #app{position:fixed;inset:0;}
+  canvas{display:block;}
+  /* 顶栏 */
+  #topbar{position:fixed;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;z-index:10;}
+  #brand{font-size:18px;font-weight:700;letter-spacing:1px;}
+  #brand small{font-size:11px;color:var(--dim);font-weight:400;margin-left:8px;letter-spacing:0;}
+  #state{font-size:12px;color:var(--acc);background:rgba(10,40,38,.7);border:1px solid rgba(148,212,208,.35);border-radius:20px;padding:4px 12px;}
+  /* 控制面板 */
+  #panel{position:fixed;right:16px;top:64px;width:250px;background:rgba(8,24,23,.82);backdrop-filter:blur(8px);border:1px solid rgba(148,212,208,.25);border-radius:14px;padding:14px;z-index:10;}
+  #panelWrap{position:fixed;top:16px;right:16px;z-index:20;max-width:300px;}
+  #panel{transition:transform .3s ease,opacity .3s ease;transform-origin:top right;}
+  #panelWrap.folded #panel{transform:translateX(120%);opacity:0;pointer-events:none;}
+  #panelWrap.folded #btnUnfold{display:block;}
+  #btnUnfold{display:none;position:fixed;top:16px;right:16px;z-index:21;background:var(--acc2);border:none;color:#fff;border-radius:9px;padding:10px 14px;font-size:13px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4);}
+  #panelHead{display:flex;align-items:center;justify-content:space-between;}
+  #btnFold{background:rgba(148,212,208,.14);border:1px solid rgba(148,212,208,.4);color:var(--txt);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:14px;line-height:1;}
+  #btnFold:hover{background:rgba(148,212,208,.28);}
+  #panel h4{font-size:12px;color:var(--acc);margin-bottom:10px;letter-spacing:.5px;}
+  .btn{display:block;width:100%;background:rgba(148,212,208,.14);border:1px solid rgba(148,212,208,.4);color:var(--txt);border-radius:9px;padding:8px 10px;font-size:13px;cursor:pointer;margin-bottom:8px;transition:background .2s;font-family:inherit;}
+  .btn:hover{background:rgba(148,212,208,.28);}
+  .btn.on{background:var(--acc2);border-color:var(--acc2);color:#fff;font-weight:600;}
+
+  #fileInput{display:none;}
+  .row{display:flex;align-items:center;justify-content:space-between;margin:8px 0;font-size:12px;}
+  .row label{color:var(--dim);}
+  .row output{color:var(--acc);font-size:11px;min-width:34px;text-align:right;}
+  input[type=range]{flex:1;margin:0 8px;accent-color:var(--acc2);}
+  #skinRow{display:flex;gap:6px;margin-bottom:6px;}
+  #stateRow .statebtn{padding:7px 2px;font-size:11px;white-space:nowrap;border-radius:8px;border:1px solid rgba(148,212,208,.35);background:transparent;color:var(--dim);cursor:pointer;min-width:52px;}
+  #stateRow .statebtn.on{background:rgba(148,212,208,.22);color:var(--txt);border-color:var(--acc);}
+  .skinbtn{flex:1;padding:6px 4px;font-size:12px;border-radius:8px;border:1px solid rgba(148,212,208,.35);background:transparent;color:var(--dim);cursor:pointer;}
+  .skinbtn.on{background:rgba(148,212,208,.2);color:var(--txt);border-color:var(--acc);}
+  /* 边界 & 约束指示 */
+  #boundwrap{position:fixed;left:16px;bottom:16px;width:240px;background:rgba(8,24,23,.78);border:1px solid rgba(148,212,208,.25);border-radius:12px;padding:12px;z-index:10;}
+  #boundwrap h4{font-size:11px;color:var(--acc);margin-bottom:8px;letter-spacing:.5px;}
+  .meter{height:8px;background:rgba(148,212,208,.12);border-radius:5px;position:relative;overflow:hidden;margin-bottom:5px;}
+  .meter i{position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#2A7A78,#94D4D0);border-radius:5px;transition:width .08s linear;}
+  .meter .zone{position:absolute;top:0;bottom:0;background:rgba(255,140,60,.35);border-radius:5px;}
+  .mlabel{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:2px;}
+  /* 情绪识别测验面板 */
+  #quizWrap{position:fixed;left:16px;top:70px;width:244px;max-height:calc(100vh - 150px);overflow-y:auto;background:rgba(8,24,23,.85);border:1px solid rgba(148,212,208,.3);border-radius:12px;padding:12px;z-index:11;backdrop-filter:blur(6px);}
+  #quizWrap h4{font-size:11px;color:var(--acc);margin:0 0 8px;letter-spacing:.5px;}
+  #quizProgress{font-size:12px;color:var(--txt);margin-bottom:8px;font-weight:600;}
+  #quizHint{font-size:10.5px;color:var(--dim);line-height:1.5;margin-bottom:8px;}
+  .qopt{display:block;width:100%;text-align:left;margin:2px 0;padding:4px 10px;font-size:12.5px;border-radius:8px;border:1px solid rgba(148,212,208,.35);background:transparent;color:var(--txt);cursor:pointer;}
+  .qopt:hover{background:rgba(148,212,208,.18);}
+  .qopt:disabled{opacity:.4;cursor:default;}
+  .qopt.right{background:rgba(82,196,26,.22);border-color:#52C41A;}
+  .qopt.wrong{background:rgba(234,102,104,.18);border-color:#EA6668;}
+  .qopt.sel{background:rgba(148,212,208,.42);border-color:var(--acc);color:#eafffb;font-weight:700;box-shadow:0 0 0 1px var(--acc) inset;}
+  #quizOpts{max-height:36vh;overflow-y:auto;padding-right:3px;margin-bottom:2px;}
+  #quizOpts::-webkit-scrollbar{width:5px;}
+  #quizOpts::-webkit-scrollbar-thumb{background:rgba(148,212,208,.35);border-radius:3px;}
+  #quizPrev:disabled{opacity:.35;cursor:default;}
+  #quizStart{width:100%;padding:9px;border-radius:8px;border:1px solid var(--acc);background:rgba(148,212,208,.2);color:var(--txt);font-size:13px;cursor:pointer;font-weight:600;}
+  #quizStart:hover{background:rgba(148,212,208,.34);}
+  #quizResult{font-size:11.5px;color:var(--txt);line-height:1.7;}
+  #quizResult .row2{display:flex;justify-content:space-between;border-bottom:1px dashed rgba(148,212,208,.15);padding:3px 0;}
+  #quizResult .ok{color:#7ED8A0;} #quizResult .no{color:#EA8A8C;}
+  .qhidden{display:none!important;}
+  /* 底部提示 */
+  #hint{position:fixed;bottom:16px;right:16px;font-size:11px;color:var(--dim);z-index:10;text-align:right;line-height:1.6;}
+  @media(max-width:640px){
+    #panel{width:200px;right:10px;top:58px;}
+    #boundwrap{left:10px;bottom:10px;width:200px;}
+  }
+/* 分组卡片折叠：标题条常驻，折叠后仍可点开 */
+.cgroup{margin-bottom:8px;border:1px solid rgba(148,212,208,.20);border-radius:9px;overflow:hidden;background:rgba(13,38,36,.35);}
+.chead{width:100%;display:flex;align-items:center;gap:7px;padding:8px 10px;background:rgba(148,212,208,.10);border:none;color:var(--acc);font-size:12px;font-weight:600;cursor:pointer;text-align:left;font-family:inherit;margin:0;}
+.chead:hover{background:rgba(148,212,208,.20);}
+.chead .car{display:inline-block;width:12px;font-size:11px;}
+.cgroup .cbody{padding:7px 9px 3px;}
+.cgroup.collapsed .cbody,#boundwrap.collapsed .cbody{display:none;}
+#boundwrap h4.chead{border-radius:10px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="topbar">
+  <div id="brand">炁灵 QILING <small>1.0 Demo · 音频驱动数字生命</small></div>
+  <div id="state">● 自主呼吸</div>
+</div>
+
+<div id="quizWrap">
+  <h4>🎯 情绪识别 · 盲测</h4>
+  <div id="quizIntro">
+    <div id="quizHint">炁灵已按你锁定的 11 种情绪和专属颜色初始化，此刻就在按这套表达起舞，无需再识别。想重新校准情绪时再点下方（会自动存草稿，可中断继续）。</div>
+    <button id="quizResume" class="qhidden" style="width:100%;padding:9px;border-radius:8px;border:none;background:var(--acc);color:#06231f;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px;">▶ 继续上次校准</button>
+    <button id="quizStart">🎯 重新校准情绪（可选）</button>
+  </div>
+  <div id="quizQ" class="qhidden">
+    <div id="quizProgress">第 1 / 11 个形态</div>
+    <div id="quizHint">它现在是什么情绪？（点选，或自己填一个词）</div>
+    <div id="quizOpts"></div>
+    <div style="display:flex;gap:5px;margin-top:6px;">
+      <input id="quizCustom" type="text" placeholder="其他感受…" style="flex:1;min-width:0;background:#0E2624;color:var(--txt);border:1px solid rgba(148,212,208,.4);border-radius:7px;padding:6px 8px;font-size:12px;">
+      <button id="quizCustomBtn" style="padding:6px 10px;border-radius:7px;border:1px solid var(--acc);background:rgba(148,212,208,.2);color:var(--txt);font-size:12px;cursor:pointer;white-space:nowrap;">填它</button>
+    </div>
+    <button id="quizSkip" style="width:100%;margin-top:5px;padding:6px;border-radius:7px;border:1px dashed rgba(148,212,208,.4);background:transparent;color:var(--dim);font-size:11.5px;cursor:pointer;">🤔 没把握 · 下轮再看（本题跳过，已选的会锁定）</button>
+    <div id="quizNav" style="padding:8px 0 2px;display:flex;gap:6px;align-items:center;margin-top:6px;">
+      <button id="quizPrev" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(148,212,208,.4);background:rgba(148,212,208,.12);color:var(--txt);font-size:12px;cursor:pointer;">← 上一题</button>
+      <button id="quizNext" style="flex:1.4;padding:9px;border-radius:8px;border:none;background:var(--acc);color:#06231f;font-size:12px;font-weight:700;cursor:pointer;">下一题 →</button>
+    </div>
+    <div id="quizAnswered" style="text-align:center;font-size:11px;color:var(--dim);margin-top:3px;">已暂存 0 / 11 · 选完可随时返回修改</div>
+  </div>
+  <div id="quizResultBox" class="qhidden">
+    <div id="quizScore" style="font-size:13px;font-weight:600;margin-bottom:6px;"></div>
+    <div id="quizResult"></div>
+    <button id="quizColor" class="qhidden" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:none;background:var(--acc);color:#06231f;font-size:13px;font-weight:700;cursor:pointer;">🎨 下一步：给每种情绪选专属颜色</button>
+    <button id="quizRetry" style="width:100%;margin-top:8px;padding:9px;border-radius:8px;border:none;background:var(--acc);color:#06231f;font-size:13px;font-weight:700;cursor:pointer;">🔁 没把握的再来一轮</button>
+    <button id="quizAgain" style="width:100%;margin-top:6px;padding:8px;border-radius:8px;border:1px solid var(--acc);background:rgba(148,212,208,.2);color:var(--txt);font-size:12.5px;cursor:pointer;">↺ 全部重测（清空已锁定，11个从头来）</button>
+  </div>
+  <div id="quizColorBox" class="qhidden">
+    <div style="font-size:12.5px;font-weight:600;margin-bottom:4px;">🎨 颜色表达 · 给每种情绪挑你的颜色</div>
+    <div style="font-size:10.5px;color:var(--dim);line-height:1.5;margin-bottom:6px;">颜色也因人而异：你觉得它是什么颜色就选什么，点色块快选或用取色器自定义。</div>
+    <div id="colorRows" style="max-height:46vh;overflow-y:auto;padding-right:3px;"></div>
+    <div style="display:flex;gap:6px;margin-top:8px;">
+      <button id="colorBack" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(148,212,208,.4);background:rgba(148,212,208,.12);color:var(--txt);font-size:12px;cursor:pointer;">← 返回结果</button>
+      <button id="genProfile" style="flex:1.5;padding:8px;border-radius:8px;border:none;background:var(--acc);color:#06231f;font-size:12.5px;font-weight:700;cursor:pointer;">✓ 生成专属炁灵</button>
+    </div>
+  </div>
+  <div id="profileBox" class="qhidden">
+    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">🔮 你的专属炁灵档案</div>
+    <div style="font-size:10.5px;color:var(--dim);margin-bottom:6px;">情绪表达 × 颜色表达都已按你的选择锁定，粒子会照此起舞，已保存在本机。</div>
+    <div id="profileList" style="max-height:34vh;overflow-y:auto;padding-right:3px;"></div>
+    <div style="display:flex;gap:6px;margin-top:8px;">
+      <button id="profileExport" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(148,212,208,.4);background:rgba(148,212,208,.12);color:var(--txt);font-size:11.5px;cursor:pointer;">📤 导出档案码</button>
+      <button id="profileImportBtn" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(148,212,208,.4);background:rgba(148,212,208,.12);color:var(--txt);font-size:11.5px;cursor:pointer;">📥 导入档案码</button>
+    </div>
+    <textarea id="profileIO" class="qhidden" placeholder="导出时这里会出现档案码，复制存好；导入时把档案码粘贴到这里再点下方恢复" style="width:100%;height:64px;margin-top:6px;background:#0E2624;color:var(--txt);border:1px solid rgba(148,212,208,.4);border-radius:7px;padding:6px;font-size:10px;box-sizing:border-box;"></textarea>
+    <button id="profileImportDo" class="qhidden" style="width:100%;margin-top:6px;padding:7px;border-radius:8px;border:none;background:var(--acc);color:#06231f;font-size:12px;font-weight:700;cursor:pointer;">✓ 按上方档案码恢复</button>
+    <button id="profileReset" style="width:100%;margin-top:6px;padding:8px;border-radius:8px;border:1px solid var(--acc);background:rgba(148,212,208,.2);color:var(--txt);font-size:12px;cursor:pointer;">↺ 重置档案（重新盲测+配色）</button>
+  </div>
+</div>
+
+<div id="panelWrap">
+<div id="panel">
+  <div id="panelHead">
+    <h4>控制 CONTROL</h4>
+    <button id="btnFold" title="折叠/展开">«</button>
+  </div>
+  <button class="btn" id="btnMusic">🎵 播放经典名曲</button>
+  <div class="row" style="margin:4px 0 10px;">
+    <label style="font-size:12px;color:var(--dim);min-width:30px;">曲目</label>
+    <select id="songSel" style="flex:1;margin-left:8px;background:#0E2624;color:var(--txt);border:1px solid rgba(148,212,208,.4);border-radius:7px;padding:5px 8px;font-size:12px;">
+      <option value="ode">🎼 欢乐颂（贝多芬）</option>
+      <option value="furelise">🎹 致爱丽丝（贝多芬）</option>
+      <option value="twinkle">⭐ 小星星变奏（莫扎特）</option>
+    </select>
+  </div>
+  <button class="btn" id="btnBeat">▶ 内置节拍器（纯鼓点）</button>
+  <button class="btn" id="btnUpload">📂 上传音频驱动</button>
+  <button class="btn" id="btnMic">🎤 麦克风实时输入</button>
+  <input type="file" id="fileInput" accept="audio/*">
+  <div style="margin:6px 0 4px;font-size:11px;color:var(--dim);">状态 · 情绪预览（你的个性映射）</div>
+  <div id="stateRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;">
+    <button class="statebtn on" data-state="breathing">🫁 呼吸·睡觉</button>
+    <button class="statebtn" data-state="vibrating">📳 震动·恐惧</button>
+    <button class="statebtn" data-state="swimming">🐟 游弋·舒服</button>
+    <button class="statebtn" data-state="expanding">💥 扩散·开心</button>
+    <button class="statebtn" data-state="sinking">⬇ 下沉·难过</button>
+    <button class="statebtn" data-state="burst">💢 爆发·生气</button>
+    <button class="statebtn" data-state="vortex">🌀 旋涡·兴奋</button>
+    <button class="statebtn" data-state="implode">☺️ 内聚·害羞</button>
+    <button class="statebtn" data-state="pulse">💓 脉冲·心动</button>
+    <button class="statebtn" data-state="thinking">💭 轨道·思考</button>
+    <button class="statebtn" data-state="purring">😺 轻颤·呼噜</button>
+    <button class="statebtn" data-state="auto">🎲 随机</button>
+  </div>
+  <div style="margin:8px 0 4px;font-size:11px;color:var(--dim);letter-spacing:.5px;">扩展形态库 · 形态实验（不占情绪）</div>
+  <div id="extRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;">
+    <button class="statebtn" data-state="tornado">🌪 龙卷风</button>
+    <button class="statebtn" data-state="school">🐟 沙丁鱼群</button>
+    <button class="statebtn" data-state="manta">🪽 魔鬼鱼</button>
+    <button class="statebtn" data-state="klein">💧 水波纹</button>
+    <button class="statebtn" data-state="wave">🧬 双螺旋DNA</button>
+    <button class="statebtn" data-state="engulf">💦 鲸喷</button>
+    <button class="statebtn" data-state="bloom">🌸 桃花水母</button>
+    <button class="statebtn" data-state="blackhole">🕳 黑洞</button>
+  </div>
+  <div style="margin:6px 0 4px;font-size:11px;color:var(--dim);">视觉皮肤</div>
+  <div id="skinRow">
+    <button class="skinbtn on" data-skin="swarm">蜂群粒子</button>
+    <button class="skinbtn" data-skin="gel">胶质球</button>
+  </div>
+  <div class="row"><label>响应灵敏度</label><input type="range" id="sensitivity" min="0.2" max="2" step="0.1" value="1"><output>1.0</output></div>
+  <div class="row"><label>边界半径</label><input type="range" id="boundR" min="1.5" max="4" step="0.1" value="2.6"><output>2.6</output></div>
+</div>
+</div>
+<button id="btnUnfold" title="展开控制面板">⚙ 控制</button>
+
+<div id="boundwrap">
+  <h4>双向约束 · SAFETY GATE</h4>
+  <div class="mlabel"><span>音频能量</span><span id="vRaw">0.00</span></div>
+  <div class="meter"><i id="mRaw"></i></div>
+  <div class="mlabel"><span>压缩后强度</span><span id="vMap">0.00</span></div>
+  <div class="meter"><i id="mMap"></i><div class="zone" id="zoneMap" style="left:80%;width:20%;"></div></div>
+  <div class="mlabel"><span>实体半径占比</span><span id="vR">0.00</span></div>
+  <div class="meter"><i id="mR"></i><div class="zone" id="zoneR" style="left:85%;width:15%;"></div></div>
+</div>
+
+<div id="hint">拖动旋转 · 滚轮缩放<br>红色区 = 安全上限（触发双向约束）</div>
+
+<script src="three.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  // ========== 工具 ==========
+  function $(id){ return document.getElementById(id); }
+
+  // ================= 音频引擎 =================
+  var ctx=null, analyser=null, masterGain=null, sourceNode=null, isBeat=false, beatTimer=null;
+  function ensureCtx(){
+    if(!ctx){ ctx=new (window.AudioContext||window.webkitAudioContext)(); }
+    if(ctx.state==='suspended') ctx.resume();
+  }
+  function setupAnalyzer(){
+    analyser=ctx.createAnalyser();
+    analyser.fftSize=2048;
+    analyser.smoothingTimeConstant=0.55;
+    masterGain=ctx.createGain();
+    masterGain.gain.value=0.8;
+    analyser.connect(masterGain); masterGain.connect(ctx.destination);
+  }
+  function freqData(){ return new Uint8Array(analyser.frequencyBinCount); }
+
+  // ===== 内置经典名曲合成引擎（零外部文件 · 公共领域旋律）=====
+  // 曲目：欢乐颂(Beethoven) / 致爱丽丝(Beethoven) / 小星星变奏(Mozart)
+  var isMusic=false, musicTimer=null, musicStep=0;
+  var SONG_CUR='ode', SONG_TEMPO=96, SONG_NOTE=60/SONG_TEMPO;
+  function mtof(m){ return 440*Math.pow(2,(m-69)/12); }
+
+  // ---- 音符序列（MIDI音符，0=休止）----
+  // 欢乐颂（贝多芬第九交响曲主旋律，C大调）
+  var ODE=[
+    64,64,67,72,72,67,64,62,60,60,62,64,64,62,62,
+    64,64,67,72,72,67,64,62,60,60,62,64,62,60,60,
+    62,62,64,60,62,67,64,62,64,62,61,62,64,62,60,60
+  ];
+  // 致爱丽丝（贝多芬，A小调经典主题）
+  var FUR=[
+    76,75,76,75,76,71,74,72,69,
+    60,64,69,71,76,75,76,75,76,71,74,72,69,
+    60,64,69,71,72,71,69,68,69,70,71,72,71,69,67,64,62,62
+  ];
+  // 小星星（莫扎特变奏主题，C大调）
+  var TWINKLE=[
+    60,60,67,67,69,69,67,65,65,64,64,62,62,60,
+    67,67,65,65,64,64,62,67,67,65,65,64,64,62,
+    60,60,67,67,69,69,67,65,65,64,64,62,62,60
+  ];
+  function getSongSeq(name){
+    if(name==='furelise') return FUR;
+    if(name==='twinkle') return TWINKLE;
+    return ODE;
+  }
+
+  function stopMusic(){
+    isMusic=false;
+    if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+    musicStep=0;
+  }
+
+  // 钢琴音色：基波 + 2次/3次谐波叠加，快速衰减
+  function playPiano(freq, t, dur, vol){
+    if(freq<=0) return;
+    var i;
+    var o1=ctx.createOscillator(), o2=ctx.createOscillator(), o3=ctx.createOscillator();
+    var g=ctx.createGain();
+    o1.type='triangle'; o1.frequency.value=freq;
+    o2.type='sine';    o2.frequency.value=freq*2;  // 2次谐波
+    o3.type='sine';    o3.frequency.value=freq*3;  // 3次谐波
+    var g1=ctx.createGain(),g2=ctx.createGain(),g3=ctx.createGain();
+    g1.gain.value=1; g2.gain.value=0.4; g3.gain.value=0.15;
+    o1.connect(g1);g1.connect(g); o2.connect(g2);g2.connect(g); o3.connect(g3);g3.connect(g);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+0.012);
+    g.gain.exponentialRampToValueAtTime(vol*0.6,t+0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    g.connect(analyser);
+    for(i=0;i<3;i++){
+      var os=[o1,o2,o3][i];
+      os.start(t); os.stop(t+dur+0.05);
+    }
+  }
+  // 低音伴奏（根音八度下）
+  function playBass(freq, t, dur, vol){
+    if(freq<=0) return;
+    var o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='sine'; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(analyser);
+    o.start(t); o.stop(t+dur+0.05);
+  }
+
+  // 简化：根据根音计算低音（每小节根音做伴奏）
+  function bassForNote(n){
+    if(n<=0) return 0;
+    var scale=[0,2,4,5,7,9,11]; // 大调音阶
+    var deg=(n%12); var oct=Math.floor(n/12);
+    var nearest=60; // C4
+    var bass=nearest-12+ (n-nearest);
+    if(bass<36) bass+=12;
+    return bass;
+  }
+
+  function startMusic(){
+    ensureCtx(); if(!analyser) setupAnalyzer();
+    stopAudio(); stopMusic();
+    isMusic=true; musicStep=0;
+    SONG_CUR=$('songSel')?$('songSel').value:'ode';
+    var seq=getSongSeq(SONG_CUR);
+    var names={ode:'欢乐颂',furelise:'致爱丽丝',twinkle:'小星星'};
+    // 每音符 = 四分音符（0.5拍*2）
+    var stepDur=SONG_NOTE*0.5; // 八分音符单位，旋律用2单位=四分音符
+    var unit=SONG_NOTE*0.25;   // 十六分音符基准
+    var t0=ctx.currentTime+0.15;
+    var step=0;
+    function tick(){
+      if(!isMusic) return;
+      var absT=t0+step*unit;
+      var n=seq[step%seq.length];
+      // 主旋律
+      if(n>0) playPiano(mtof(n), absT, unit*3.2, 0.5);
+      // 低音伴奏：每4个十六分音符（每拍）给根音
+      if(step%4===0){
+        var b=bassForNote(seq[step%seq.length]);
+        if(b>0) playBass(mtof(b-12), absT, unit*3.0, 0.30);
+      }
+      step=(step+1)%seq.length;
+      if(step===0){
+        // 循环时保持音高统一，避免突兀
+      }
+    }
+    tick();
+    musicTimer=setInterval(tick, Math.max(45, Math.floor(unit*1000*0.6)));
+    setState('音频响应 · '+names[SONG_CUR]);
+  }
+  function startBeat(){
+    ensureCtx(); if(!analyser) setupAnalyzer();
+    stopAudio(); stopMusic();
+    isBeat=true;
+    var bpm=112, interval=60/bpm;
+    var nextT=ctx.currentTime+0.05;
+    function schedule(){
+      if(!isBeat) return;
+      while(nextT<ctx.currentTime+0.2){
+        var osc=ctx.createOscillator(), g=ctx.createGain();
+        osc.type='sine'; osc.frequency.value=55*(1+(Math.random()<0.25?0.5:0));
+        g.gain.setValueAtTime(0.0001,nextT);
+        g.gain.exponentialRampToValueAtTime(0.9,nextT+0.005);
+        g.gain.exponentialRampToValueAtTime(0.0001,nextT+0.28);
+        osc.connect(g); g.connect(analyser);
+        osc.start(nextT); osc.stop(nextT+0.3);
+        nextT+=interval;
+      }
+      beatTimer=setTimeout(schedule,80);
+    }
+    schedule();
+    setState('音频响应 · 内置节拍');
+  }
+  function stopAudio(){
+    isBeat=false; if(beatTimer){clearTimeout(beatTimer);beatTimer=null;}
+    stopMusic();
+    if(sourceNode){try{sourceNode.disconnect();}catch(e){} sourceNode=null;}
+    if(micSource){try{micSource.disconnect();}catch(e){} micSource=null;}
+    if(micStream){try{micStream.getTracks().forEach(function(t){t.stop();});}catch(e){} micStream=null;}
+  }
+  function loadFile(file){
+    ensureCtx(); if(!analyser) setupAnalyzer();
+    stopAudio();
+    var url=URL.createObjectURL(file);
+    var audio=new Audio(url); audio.loop=true;
+    sourceNode=ctx.createMediaElementSource(audio);
+    sourceNode.connect(analyser);
+    audio.play().then(function(){ setState('音频响应 · '+file.name); },function(){setState('音频解析中…');});
+  }
+  // ===== 音频源互斥管理器：一次只能选一种 =====
+  var activeAudio=null; // 'music'|'beat'|'file'|'mic'|null
+  var AUDIO_BTNS={music:'btnMusic', beat:'btnBeat', file:'btnUpload', mic:'btnMic'};
+  function setActiveAudio(type){
+    activeAudio=type;
+    for(var k in AUDIO_BTNS){
+      var b=$(AUDIO_BTNS[k]);
+      if(b) b.classList.toggle('on', type===k);
+    }
+  }
+  function audioToggle(type, on){
+    // on=true: 启动某源（自动停其他）；on=false: 全部停止
+    if(on){
+      if(activeAudio===type){ // 同源再点=关闭
+        stopAudio(); setState('自主 · 待命'); setActiveAudio(null); return;
+      }
+      stopAudio(); stopMusic(); setActiveAudio(type);
+    } else {
+      stopAudio(); setState('自主 · 待命'); setActiveAudio(null);
+    }
+  }
+  $('btnMusic').addEventListener('click',function(){ audioToggle('music', true); startMusic(); });
+  $('btnBeat').addEventListener('click',function(){ audioToggle('beat', true); startBeat(); });
+  $('btnUpload').addEventListener('click',function(){$('fileInput').click();});
+  $('fileInput').addEventListener('change',function(e){ if(e.target.files[0]) loadFile(e.target.files[0]); });
+
+  // ================= 渲染器：WebGL / Canvas2D 双模式 =================
+  var useWebGL=false, glCanvas=null, ctx2d=null;
+  var container=$('app');
+  var W=window.innerWidth,H=window.innerHeight;
+
+  // 探测 WebGL
+  var glTest=null;
+  try{ glTest=document.createElement('canvas').getContext('webgl')||document.createElement('canvas').getContext('experimental-webgl'); }
+  catch(e){ glTest=null; }
+
+  var renderer=null, scene=null, camera=null;
+  var points=null, geo=null, boundMesh=null, mat=null;
+
+  function initWebGL(){
+    useWebGL=true;
+    renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setSize(W,H); renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    container.appendChild(renderer.domElement);
+    scene=new THREE.Scene();
+    camera=new THREE.PerspectiveCamera(60,W/H,0.1,100);
+    camera.position.set(0,0.5,6.2);
+    scene.add(new THREE.AmbientLight(0xffffff,0.6));
+    var pl=new THREE.PointLight(0x94D4D0,1.2,20); pl.position.set(2,3,4); scene.add(pl);
+    var boundGeo=new THREE.SphereGeometry(1,32,32);
+    var boundMat=new THREE.MeshBasicMaterial({color:0x94D4D0,wireframe:true,transparent:true,opacity:0.08});
+    boundMesh=new THREE.Mesh(boundGeo,boundMat); scene.add(boundMesh);
+    geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+    mat=new THREE.PointsMaterial({color:0x8FD6D1,size:0.045,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false});
+    points=new THREE.Points(geo,mat); scene.add(points);
+  }
+
+  function initCanvas2D(){
+    useWebGL=false;
+    while(container.firstChild) container.removeChild(container.firstChild);
+    glCanvas=document.createElement('canvas');
+    glCanvas.style.cssText='position:fixed;inset:0;width:100%;height:100%;display:block;';
+    glCanvas.width=W; glCanvas.height=H;
+    container.appendChild(glCanvas);
+    ctx2d=glCanvas.getContext('2d');
+    // 状态栏提示当前为 2D 降级模式
+    var tip=document.createElement('div');
+    tip.style.cssText='position:fixed;top:50px;left:50%;transform:translateX(-50%);z-index:9;font-size:11px;color:#8FD6D1;background:rgba(10,40,38,.7);border:1px solid rgba(148,212,208,.3);border-radius:16px;padding:3px 12px;';
+    tip.textContent='Canvas 2D 兼容模式（当前环境无 WebGL）';
+    document.body.appendChild(tip);
+  }
+
+  // ================= 粒子数据 =================
+  var COUNT=9000, skin='swarm';
+  var positions=new Float32Array(COUNT*3);
+  var baseDir=new Float32Array(COUNT*3);
+  var baseR=new Float32Array(COUNT);
+  var phase=new Float32Array(COUNT);
+  for(var i=0;i<COUNT;i++){
+    var r=Math.pow(Math.random(),0.33)*0.95;
+    var th=Math.acos(2*Math.random()-1);
+    var ph=Math.random()*Math.PI*2;
+    baseDir[i*3]=Math.sin(th)*Math.cos(ph);
+    baseDir[i*3+1]=Math.sin(th)*Math.sin(ph);
+    baseDir[i*3+2]=Math.cos(th);
+    baseR[i]=r;
+    phase[i]=Math.random()*Math.PI*2;
+    positions[i*3]=baseDir[i*3]*r*BOUND;
+    positions[i*3+1]=baseDir[i*3+1]*r*BOUND;
+    positions[i*3+2]=baseDir[i*3+2]*r*BOUND;
+  }
+
+  // 边界球可视化用 BOUND
+  var BOUND=2.6;
+
+  // 初始化渲染器
+  if(glTest && typeof THREE!=='undefined'){
+    try{ initWebGL(); }
+    catch(e){
+      // WebGL 初始化失败：彻底移除已挂载的坏画布，避免黑屏遮挡 Canvas2D
+      if(renderer){
+        try{ var de=renderer.domElement; if(de&&de.parentNode) de.parentNode.removeChild(de); }catch(_){}
+        try{ renderer.dispose(); }catch(_){}
+      }
+      renderer=null; useWebGL=false;
+      initCanvas2D();
+    }
+  } else {
+    initCanvas2D();
+  }
+
+  // ================= 双向约束 · SAFETY GATE =================
+  function compress(raw,k){ raw=Math.max(0,raw); return 1-Math.exp(-raw*k*2.2); }
+  function softBound(px,py,pz){
+    var d=Math.sqrt(px*px+py*py+pz*pz);
+    if(d>BOUND){
+      var over=(d-BOUND)/BOUND;
+      var f=1+over*3.5;
+      return [-px/d*f, -py/d*f, -pz/d*f];
+    }
+    return [0,0,0];
+  }
+
+  // ================= 行为层 · 三层情绪系统 =================
+  // ① 运动层（客观固定）：6个动作原型
+  // ② 情绪层（主观标签）：每个动作可挂情绪标签
+  // ③ 映射层（可个性化）：MOTION_EMOTION —— 当前为「杨博」的个性配置
+  var mode='autonomous';
+  var stateName='breathing';   // 6动作原型之一
+  var stateTimer=0, stateDur=0, stateBlend=1;
+  var MORPH_DUR=1.15, morphFrom=new Float32Array(COUNT*3), morphBlend=1, lastMorphState=null, morphE=1; // 形态自然过渡
+  var manualState=null;
+  var t=0;
+  var swimPhase=0;
+  var micStream=null, micSource=null;
+  function setState(s){ $('state').textContent='● '+s; }
+  var rawE=0, mappedE=0, beatHit=0, rmsV=0, bassV=0, midV=0, trebV=0;
+  // 复杂节奏：6段能量、三类打击包络、频谱通量、亮度质心、BPM/节拍相位
+  var subV=0, lowmV=0, himidV=0, kickEnv=0, snareEnv=0, hatEnv=0, fluxV=0, centroid=0.5;
+  var bpm=0, beatPhase=0, lastKickT=-1, lastSnareT=-1, lastHatT=-1, kickGapEma=0, lastInfoT=0;
+  var beatEnv=0, fluxMean=0, lastBeatT=-1, beatGapEma=0, eMean=0;
+  var prevMag=null, bandMean=null;
+
+  // ---- ③ 个性化映射层：动作 → 情绪标签（可被用户改写，成为专属性格）----
+  var MOTION_EMOTION={
+    breathing:{emo:'睡觉',  icon:'😴'},
+    vibrating:{emo:'恐惧',  icon:'📳'},
+    swimming: {emo:'舒服',  icon:'🐟'},
+    expanding:{emo:'开心',  icon:'⬆'},
+    sinking:  {emo:'难过',  icon:'⬇'},
+    burst:    {emo:'生气',  icon:'💢'},
+    vortex:   {emo:'兴奋',  icon:'🌀'},
+    implode:  {emo:'害羞',  icon:'☺️'},
+    pulse:    {emo:'心动',  icon:'💓'},
+    thinking: {emo:'思考',  icon:'💭'},
+    purring:  {emo:'呼噜',  icon:'😺'}
+  };
+  var MOTIONS=['breathing','vibrating','swimming','expanding','sinking','burst','vortex','implode','pulse','thinking','purring'];
+  // ---- 扩展形态库：只做形态模拟与手动预览，不进自主调度/盲测/情绪档案 ----
+  var EXT_MOTIONS=['tornado','school','manta','klein','wave','engulf','bloom','blackhole'];
+  var EXT_META={
+    tornado:{emo:'龙卷风',  icon:'🌪'},
+    school: {emo:'沙丁鱼群',icon:'🐟'},
+    geese:  {emo:'孤雁飞行',icon:'🦢'},
+    manta:  {emo:'魔鬼鱼',  icon:'🪽'},
+    klein:  {emo:'水波纹',icon:'💧'},
+    wave:   {emo:'双螺旋DNA',icon:'🧬'},
+    engulf: {emo:'鲸喷',    icon:'💦'},
+    bloom:    {emo:'桃花水母',icon:'🌸'},
+    blackhole:{emo:'黑洞',  icon:'🕳'}
+  };
+  var EXT_COLOR={tornado:'#A9C3D2',school:'#58C8E6',geese:'#FFB454',manta:'#B98CFF',klein:'#7BE0D6',wave:'#74E3FF',engulf:'#4F7CF0',bloom:'#FF8FBC',blackhole:'#FFB04A'};
+
+  function pickNextState(){
+    return MOTIONS[Math.floor(Math.random()*MOTIONS.length)];
+  }
+  function chooseStateDur(s){
+    switch(s){
+      case 'breathing': return 10+Math.random()*8;
+      case 'flowing':   return 10+Math.random()*8;
+      case 'vibrating': return 4+Math.random()*4;
+      case 'swimming':  return 14+Math.random()*10;
+      case 'expanding': return 8+Math.random()*6;
+      case 'sinking':   return 10+Math.random()*8;
+      case 'burst':     return 8+Math.random()*6;
+      case 'vortex':    return 10+Math.random()*8;
+      case 'implode':   return 10+Math.random()*8;
+      case 'pulse':     return 10+Math.random()*8;
+      case 'thinking':  return 12+Math.random()*8;
+      case 'purring':   return 10+Math.random()*8;
+    }
+    return 10;
+  }
+
+  // ---- ① 运动层：形态优先（轮廓定得住），内部运动为辅 ----
+  // 维度：scale缩放 / spin自转 / flow环流 / tremor抖动 / swim漂移
+  //       expand外扩 / sink下沉(负=上浮) / squeeze内缩
+  //       angular形状：0球 1水平压扁(悲) 2竖直拉长(喜) 4水平拉长(舒适)
+  function stateParams(){
+    // mode 运动拓扑；新增拟态变形器：flatY竖直压扁 / stream轴向流(+上-下) / corePow密度向心 / ring环形 / swing摆尾
+    var p={scale:0,spin:0,flow:0,tremor:0,swim:0,expand:0,sink:0,squeeze:0,angular:0,mode:'normal',
+           flatY:1,stream:0,corePow:1,ring:0,swing:0,tilt:0,pause:0,label:''};
+    var me=MOTION_EMOTION[stateName]||EXT_META[stateName]||{emo:'',icon:''};
+    var tag=me.icon+' '+stateName+' · '+me.emo;
+    switch(stateName){
+      case 'breathing':   // 休息：端正光滑球，缓慢而明显地一张一缩
+        p.scale=0.26*Math.sin(t*0.62); p.spin=0.0006; p.flow=0.09;
+        p.label=tag; break;
+      case 'flowing':     // 平静：水平铺开的扁盘雾带，柔和横向层流（与球彻底区分）
+        p.flatY=0.30; p.scale=0.03*Math.sin(t*0.6+1); p.spin=0.0014; p.flow=0.30;
+        p.label=tag; break;
+      case 'vibrating':   // 害怕：收紧的小密实团 + 高频剧烈颤抖
+        p.tremor=0.12; p.squeeze=0.46; p.scale=0.02*Math.sin(t*14);
+        p.spin=0.0003; p.flow=0.02; p.label=tag; break;
+      case 'swimming':    // 舒适：水平拉长的鱼形，摆尾般左右波动悠游
+        p.scale=0.10*Math.sin(t*0.5+2); p.spin=0.0011; p.flow=0.26;
+        p.swing=1; p.angular=4; p.label=tag; break;
+      case 'expanding':   // 开心：竖直火苗，内部粒子持续向上升腾、上端发散
+        p.stream=1; p.expand=0.28; p.sink=-0.44; p.spin=0.0016; p.flow=0.34; p.angular=2;
+        p.label=tag; break;
+      case 'sinking':     // 悲伤：下垂泪滴，粒子向下坠落、底端收尖、整体偏低
+        p.stream=-1; p.sink=0.26; p.spin=0.0002; p.flow=0.05; p.angular=2;
+        p.label=tag; break;
+      case 'burst':       // 愤怒：尖刺炸球，周期性向外猛烈炸开再收回
+        p.mode='burst'; p.flow=0.32; p.spin=0.0028; p.label=tag; break;
+      case 'vortex':      // 兴奋：漏斗螺旋，高速差速扭转上升
+        p.mode='vortex'; p.flow=1.8; p.spin=0.010; p.sink=-0.20; p.angular=2; p.label=tag; break;
+      case 'implode':     // 害羞：极小极密的亮核，向内缩、像把自己藏起来
+        p.mode='implode'; p.corePow=2.4; p.flow=0.10; p.spin=0.001; p.label=tag; break;
+      case 'pulse':       // 心动：水平同心环，随心跳节律一圈圈向外扩
+        p.mode='pulse'; p.ring=0.88; p.flatY=0.32; p.flow=0.12; p.spin=0.0032; p.label=tag; break;
+      case 'thinking':    // 思考：倾斜的宽轨道环、缓慢、走走停停、留有核心
+        p.mode='thinking'; p.ring=0.32; p.flatY=0.52; p.tilt=0.6; p.pause=1;
+        p.flow=0.17; p.spin=0.0019; p.label=tag; break;
+      case 'purring':     // 呼噜：饱满圆滚球，低频规律轻颤、松弛满足
+        p.mode='purr'; p.expand=0.22; p.flow=0.11; p.spin=0.001; p.label=tag; break;
+      // —— 扩展形态：位置在主循环走独立参数化分支 ——
+      case 'tornado': p.mode='tornado'; p.spin=0.001; p.label=tag; break;
+      case 'school':  p.mode='school';  p.label=tag; break;
+      case 'geese':   p.mode='geese';   p.label=tag; break;
+      case 'manta':   p.mode='manta';   p.label=tag; break;
+      case 'klein':   p.mode='klein';   p.label=tag; break;
+      case 'wave':    p.mode='wave';    p.label=tag; break;
+      case 'engulf':  p.mode='engulf';  p.label=tag; break;
+      case 'bloom':    p.mode='bloom';    p.label=tag; break;
+      case 'blackhole':p.mode='blackhole';p.label=tag; break;
+      default: p.label='音频响应';
+    }
+    return p;
+  }
+
+  function bandEnergy(data,f0,f1,sr,fft){           // 按真实频率(Hz)求一段平均能量 0..1
+    var b0=Math.max(1,Math.round(f0*fft/sr)), b1=Math.max(b0+1,Math.round(f1*fft/sr)), s=0,cn=0;
+    for(var i=b0;i<b1&&i<data.length;i++){ s+=data[i]; cn++; }
+    return cn? s/(cn*255):0;
+  }
+  function analyzeAudio(){
+    var STEP=1/60;
+    if(!analyser){ rawE*=0.95; kickEnv*=0.90; snareEnv*=0.85; hatEnv*=0.78;
+      beatPhase=(beatPhase+STEP*(bpm?bpm/60:2))%1; return; }
+    var data=freqData(); analyser.getByteFrequencyData(data);
+    var n=data.length, sr=ctx.sampleRate, fft=analyser.fftSize, now=t;
+    if(!prevMag||prevMag.length!==n){ prevMag=new Float32Array(n); bandMean=new Float32Array(6);
+      for(var kz=0;kz<6;kz++) bandMean[kz]=0.02; }
+    // 6 段：sub超低/kick, bass低, lowmid低中(贝斯人声基音), mid中(旋律人声), himid中高, treb高(镲片)
+    var E=[bandEnergy(data,20,60,sr,fft),bandEnergy(data,60,150,sr,fft),bandEnergy(data,150,400,sr,fft),
+           bandEnergy(data,400,1200,sr,fft),bandEnergy(data,1200,4000,sr,fft),bandEnergy(data,4000,16000,sr,fft)];
+    subV=E[0]; bassV=E[1]; lowmV=E[2]; midV=E[3]; himidV=E[4]; trebV=E[5];
+    // 频谱通量(音符/打击起始强度) + 亮度质心
+    var flux=0,cw=0,csum=0;
+    for(var i=1;i<n;i++){ var dd=data[i]-prevMag[i]; if(dd>0) flux+=dd; var fhz=i*sr/fft; cw+=data[i]*fhz; csum+=data[i]; prevMag[i]=data[i]; }
+    fluxV=flux/(n*255); if(csum>0) centroid+=(Math.min(1,(cw/csum)/(sr*0.30))-centroid)*0.15;
+    // 各段自适应本底（爆发时不快速抬阈值，平时慢跟随）
+    for(var b=0;b<6;b++){ var th=bandMean[b]; bandMean[b]=(E[b]>th*1.6)?th*0.985:th*0.96+E[b]*0.04; }
+    // 通用节拍 onset：频谱通量超自身近期均值即判一个节拍起音(无鼓旋律也能跟)，再按频段构成上色
+    if(!fluxMean) fluxMean=fluxV; fluxMean=fluxMean*0.95+fluxV*0.05;
+    var bodyE=E[1]+E[2]+E[3];
+    if(!eMean) eMean=bodyE;
+    var lowEn=E[0]+E[1], hiEn=E[4]+E[5];
+    var onE=bodyE>eMean*1.22&&bodyE>0.045, onF=fluxV>fluxMean*1.4&&fluxV>0.012; // 能量抬头 或 通量突增
+    if((onE||onF)&&now-lastBeatT>0.20){
+      var bgap=now-lastBeatT; lastBeatT=now; beatEnv=1;
+      if(bgap>0.30&&bgap<1.15){ beatGapEma=beatGapEma?beatGapEma*0.7+bgap*0.3:bgap; bpm=60/beatGapEma; }
+      if(lowEn>hiEn*1.15&&lowEn>0.10) kickEnv=1;             // 低频次拍=底鼓冲击
+      else if(E[5]>E[1]*1.3&&E[5]>0.05) hatEnv=1;            // 高频主导=镲片碎闪
+      else if(hiEn>0.08) snareEnv=1; else kickEnv=Math.max(kickEnv,0.55); // 中性音符给半强度律动
+    }
+    eMean=eMean*0.92+bodyE*0.08;
+    // 快攻慢释包络（通用节拍 / 底鼓回弹慢、镲片碎灭快）
+    beatEnv*=0.88; kickEnv*=0.90; snareEnv*=0.85; hatEnv*=0.78;
+    // 节拍相位按 BPM 持续推进，形成律动网格（无 BPM 时 0.5s 兜底）
+    beatPhase=(beatPhase+STEP/(bpm?60/bpm:0.5))%1;
+    rmsV=(E[0]+E[1]+E[2]+E[3]+E[4]+E[5])/6;
+    rawE=rmsV*0.55+(subV+bassV)*0.225;
+    beatHit=Math.max(beatHit*0.94,Math.max(kickEnv,beatEnv*0.7)*0.6);
+  }
+
+  // ---- 麦克风实时输入 ----
+  function startMic(){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+      setState('此浏览器不支持麦克风'); return;
+    }
+    ensureCtx(); if(!analyser) setupAnalyzer();
+    stopAudio();
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      micStream=stream;
+      micSource=ctx.createMediaStreamSource(stream);
+      micSource.connect(analyser);
+      setState('音频响应 · 麦克风');
+    }).catch(function(){ setState('麦克风被拒绝'); });
+  }
+  $('btnMic').addEventListener('click',startMic);
+
+  var sensEl=$('sensitivity'), boundEl=$('boundR');
+  var mRaw=$('mRaw'), mMap=$('mMap'), mR=$('mR');
+  var vRaw=$('vRaw'), vMap=$('vMap'), vR=$('vR');
+
+  // 2D 渲染：把 3D 粒子投影到屏幕
+  function render2D(){
+    var cx=W/2, cy=H/2;
+    var scale=Math.min(W,H)*0.28; // 粒子球投影半径基准
+    var rot=t*0.3+0.0015*60*t;
+    ctx2d.clearRect(0,0,W,H);
+    // 边界球
+    ctx2d.beginPath();
+    ctx2d.arc(cx,cy,scale*BOUND,0,Math.PI*2);
+    ctx2d.strokeStyle='rgba(148,212,208,0.12)'; ctx2d.lineWidth=1; ctx2d.stroke();
+    // 粒子
+    var step=(stateName==='blackhole')?1:Math.max(1,Math.floor(COUNT/4000));
+    var rad=skin==='swarm'?1.1:2.2;
+    for(var i=0;i<COUNT;i+=step){
+      var ix=i*3, iy=ix+1, iz=ix+2;
+      var px=positions[ix], py=positions[iy], pz=positions[iz];
+      var f=scale/(1+pz*0.35+2.0);
+      var sx=cx+px*f, sy=cy+py*f;
+      var a=Math.max(0.12,Math.min(1,(1-0.5*Math.abs(pz)/BOUND)*0.9));
+      ctx2d.fillStyle='rgba('+(curColor.r|0)+','+(curColor.g|0)+','+(curColor.b|0)+','+a.toFixed(3)+')';
+      ctx2d.beginPath();
+      ctx2d.arc(sx,sy,rad,0,Math.PI*2);
+      ctx2d.fill();
+    }
+  }
+
+  function update(){
+    var dt=1/60; t+=dt;
+    tgtColor=stateColorOf(stateName);
+    if(lastColorState!==stateName){ curColor.r=tgtColor.r; curColor.g=tgtColor.g; curColor.b=tgtColor.b; lastColorState=stateName; } // 切换即到位
+    curColor.r+=(tgtColor.r-curColor.r)*0.10; curColor.g+=(tgtColor.g-curColor.g)*0.10; curColor.b+=(tgtColor.b-curColor.b)*0.10;
+    var sens=parseFloat(sensEl.value);
+    BOUND=parseFloat(boundEl.value);
+    if(useWebGL&&boundMesh) boundMesh.scale.setScalar(BOUND);
+
+    // ---- 模式切换：有音频(含麦克风)进入响应态，否则自主状态机 ----
+    var hasAudio=!!(analyser && (isMusic||isBeat||micStream||sourceNode));
+    if(hasAudio){ analyzeAudio(); mode='audio'; }
+    else { rawE*=0.97; mode='autonomous'; }
+
+    // ---- 自主状态机调度（仅自主模式）----
+    if(mode==='autonomous'){
+      if(manualState){ // 手动预览：锁定状态
+        if(stateName!==manualState){
+          stateName=manualState; stateDur=9999; stateBlend=0; stateTimer=0;
+        }
+        if(stateBlend<1){ stateBlend=Math.min(1,stateBlend+dt*0.8); }
+        stateTimer+=dt;
+      } else {
+        if(stateBlend>=1){ // 过渡完成，进入下一个状态
+          stateName=pickNextState();
+          stateDur=chooseStateDur(stateName);
+          stateTimer=0; stateBlend=0;
+        }
+        if(stateBlend<1){ stateBlend=Math.min(1,stateBlend+dt*0.8); } // 1.25s过渡
+        stateTimer+=dt;
+        if(stateTimer>stateDur){ stateBlend=0; stateTimer=stateDur; } // 触发下一次调度
+      }
+      if(!quizActive){ setState(stateParams().label); }
+    } else {
+      stateBlend=0;
+    }
+
+    // ---- 音频特征 → 运动映射（响应态）----
+    mappedE=compress(rawE,sens);
+    if(!analyser) mappedE*=0.15;
+
+    var sp=stateParams();
+    var breath=0.6+sp.scale;                       // 呼吸基准 + 状态特征
+    var audioOn=(mode==='audio');
+    // 多维节奏：底鼓冲击 / 军鼓甩动 / 镲片碎闪 / 旋律涨落 / 亮度 / 卡拍律动
+    var kickPunch=audioOn?Math.max(kickEnv,beatEnv*0.6):0, snareFlick=audioOn?snareEnv:0, hatShimmer=audioOn?hatEnv:0;
+    var melSwell=audioOn?(lowmV*0.6+midV*0.4):0, brightN=audioOn?centroid:0.5;
+    var groove=audioOn?Math.sin(beatPhase*6.2831853):0;
+    var pulseBoost=beatHit*0.10+kickPunch*0.16;                 // 底鼓：明显径向冲击
+    var audioScale=mappedE*0.22+melSwell*0.12*sens+(brightN-0.5)*0.06; // 旋律/亮度主导缓涨，而非总音量硬缩放
+    var flowSpeed=(audioOn?(midV*1.6+himidV*1.0+snareFlick*3.0)*sens:sp.flow*sens*0.3)+sp.flow*0.3; // 军鼓瞬时加速扭转
+    var tremor=(audioOn?trebV*0.03*sens:sp.tremor)+sp.tremor*0.3;
+    var audioSwayX=audioOn?(Math.sin(t*1.7)*melSwell*0.30+snareFlick*0.22*Math.sin(t*3.1)):0; // 整体随旋律/军鼓左右轻摇
+
+    // 游弋：整体位置漂移（正弦路径，被双向约束保护）
+    swimPhase+=dt*0.7;
+    var driftAmp=sp.swim?1.6:0;
+    var driftX=Math.sin(swimPhase)*driftAmp;
+    var driftY=Math.cos(swimPhase*0.8)*driftAmp*0.7;
+
+    // 半径 = 呼吸 × 外扩(expand) × 内缩(squeeze)
+    var targetScale=breath+audioScale+pulseBoost+(audioOn?groove*0.03:0);
+    var maxScale=0.85, minScale=0.30;
+    if(targetScale>maxScale) targetScale=maxScale;
+    if(targetScale<minScale) targetScale=minScale;
+    var radiusScale=targetScale*(1+sp.expand)*(1-sp.squeeze);
+
+    // 形状变形：1水平压扁(悲伤) / 2竖直拉长(开心) / 4水平拉长(舒适)
+    var shapeX=1, shapeY=1;
+    if(sp.angular===1){ shapeY=0.60; shapeX=1.22; }
+    if(sp.angular===2){ shapeY=1.42; shapeX=0.80; }
+    if(sp.angular===4){ shapeY=0.52; shapeX=1.78; }  // xichangyu
+
+    // 整体上浮(负)/下沉(正)，与边界尺度匹配
+    var yOffset=sp.sink*BOUND;
+
+    // ---- 运动拓扑包络（一眼可辨的整体运动模式）----
+    var topoR=1;                 // 半径调制
+    var vortexTwist=0;           // 旋涡差速扭转强度
+    var burstEnv=0;              // 愤怒径向喷发量
+    var modeNow=sp.mode;
+    if(modeNow==='burst'){       // 愤怒：紧绷炸毛 + 周期性猛烈喷发
+      burstEnv=Math.pow(Math.max(0,Math.sin(t*1.9)),1.2);
+      topoR=0.56+burstEnv*0.78;
+    } else if(modeNow==='implode'){ // 害羞：持续偏紧，向致密核心坍缩
+      topoR=0.42+0.12*(0.5+0.5*Math.sin(t*0.7));
+    } else if(modeNow==='pulse'){   // 心动：心跳“咚-哒”双脉冲（快而有顿挫）
+      var pp=(t*1.15)%1;
+      var hb=Math.exp(-Math.pow((pp-0.12)/0.05,2))+0.66*Math.exp(-Math.pow((pp-0.34)/0.06,2));
+      topoR=1+0.48*hb;
+    } else if(modeNow==='vortex'){  // 兴奋：强差速扭转成纺锤螺旋柱
+      vortexTwist=4.8;
+    } else if(modeNow==='purr'){    // 呼噜：低频规律轻颤，松弛酥麻
+      topoR=1+0.06*Math.sin(t*7);
+    }
+    // 思考：运动走走停停的顿挫包络（其他形态恒为1，不影响）
+    var pauseEnv=sp.pause?(0.35+0.65*Math.pow(0.5+0.5*Math.sin(t*0.9),2)):1;
+
+    // 扩展·海底鱼群：9 个鱼群簇中心沿平滑曲线各自巡游（循环外只算9次）
+    var gCX=[],gCY=[],gCZ=[];
+    if(modeNow==='school'){
+      gCX[0]=Math.sin(t*0.35)*1.02; gCY[0]=Math.sin(t*0.6+1.0)*0.42; gCZ[0]=Math.cos(t*0.35)*1.02;
+    }
+    // ---- 形态切换自然过渡：切换帧冻结当前排布为起点，MORPH_DUR 内 easeInOut 平滑迁移到新形态 ----
+    if(lastMorphState!==stateName){
+      if(lastMorphState!==null){ morphFrom.set(positions); morphBlend=0; } // 首次不做开场形变
+      lastMorphState=stateName;
+    }
+    if(morphBlend<1){ morphBlend=Math.min(1,morphBlend+dt/MORPH_DUR); var _mb=morphBlend;
+      morphE=_mb<0.5?4*_mb*_mb*_mb:1-Math.pow(-2*_mb+2,3)/2; } else morphE=1;
+    var P=positions;
+    var flatY=sp.flatY, corePow=sp.corePow, doRing=sp.ring, stream=sp.stream, doSwing=sp.swing;
+    var swingX=doSwing?Math.sin(t*1.6)*0.48*BOUND:0;   // 鱼游整体摆尾(加大)
+    for(i=0;i<COUNT;i++){
+      var ix=i*3, iy=ix+1, iz=ix+2;
+      // ============ 扩展形态库：独立参数化分支（与通用球体拓扑解耦）============
+      var bx=baseDir[ix], by=baseDir[iy], bz=baseDir[iz], wSeed=baseR[i], phSeed=phase[i];
+      if(modeNow==='tornado'||modeNow==='school'||modeNow==='geese'||modeNow==='manta'||modeNow==='klein'||modeNow==='wave'||modeNow==='engulf'||modeNow==='bloom'||modeNow==='blackhole'){
+        var u=0.5+0.5*by, v=phSeed/6.283185307, nx=0,ny=0,nz=0;
+        if(modeNow==='tornado'){
+          // 尘雾龙卷风(接地)：底部地面铺散、连续漏斗柱向上螺旋收窄 + 顶部云冠，水平层纹只入螺旋相位、不断柱
+          var hh=(u+t*0.14)%1, hN=hh;
+          var cone=0.26+0.95*Math.pow(1-hN,2.2);                          // 接地最宽、快速收细成扭转柱
+          var crown=0.42*Math.pow(Math.max(0,hN-0.85)/0.15,2);            // 顶端云冠略张
+          var prof=cone+crown;
+          var layers=13, fl=Math.round(hN*layers)/layers;                 // 水平层纹只入相位、不吸附y
+          var rn=Math.min(1,wSeed/0.95);
+          // 60%聚成5条螺旋流线束(清晰缠绕)，余作缥缈填充雾
+          var inBand=v<0.62, NB=5, bId=inBand?Math.floor(v*NB):0, bAlong=inBand?(v*NB-bId):0;
+          var bandAng=inBand?(bId*(6.283185307/NB)+(bAlong-0.5)*0.30):(phSeed*6.283185307);
+          // 缥缈翻涌全部慢速化(频率≤0.8)，杜绝高频项随时间把丝束抖糊；束径向扰动远小于内部雾
+          var flA=0.55*Math.sin(phSeed*3.0+hN*5.0+t*0.5)+0.30*Math.sin(phSeed*5.0-hN*4.0+t*0.35);
+          var jFix=Math.sin(phSeed*23.0)*0.030+Math.sin(phSeed*17.0+t*0.8)*0.020; // 固定纹理+慢漂移，无高频
+          var spinA=t*(1.0+1.6*hN)+fl*4.0+hN*7.0+bandAng;                 // 下慢上快、螺旋上升扭转(刚体转，不致糊)
+          var rc=inBand?(prof*(0.82+0.16*Math.pow(rn,0.5))):(prof*Math.pow(rn,0.7)*0.78); // 束=贴表面薄壳螺旋丝，雾=内部偏内
+          var flGain=inBand?0.05:0.14;                                    // 束始终贴壳清晰、雾才缥缈外涌
+          var radF=rc+flA*flGain*prof+jFix*prof;
+          var gy=(1-hN*2)*1.45+flA*0.06+Math.sin(phSeed*2.0+t*0.6)*0.035; // hN0底→屏幕下,hN1顶→屏幕上
+          if(hN<0.14){                                                     // 底部接地：沿地面水平铺散成尘层
+            var gsp=(0.14-hN)/0.14;
+            radF+=Math.pow(wSeed,2)*gsp*0.90;
+            gy=Math.max(gy,1.16-wSeed*0.16-flA*0.04);
+          }
+          var thrG=inBand?0.06:0.18;                                      // 边缘慢甩：束几乎不甩(保清晰)、雾轻飘
+          var thr=Math.pow(wSeed,3)*Math.sin(t*0.8+phSeed*4.0)*thrG*prof;
+          radF=(radF+thr)*1.12;
+          var sway=Math.sin(t*0.5+hN*3)*0.08*hN;
+          nx=Math.cos(spinA)*radF+sway;
+          ny=gy;
+          nz=Math.sin(spinA)*radF;
+        } else if(modeNow==='school'){
+          // 沙丁鱼群：全部粒子紧密聚成一个整体团块，随团中心巡游、内部同向绕动、沿游动方向拉长
+          var sN=Math.min(1,wSeed/0.95), sr=Math.pow(sN,0.5)*1.34;
+          var lx=bx*sr, ly=by*sr, lz=bz*sr;
+          var sa=t*0.6, csa=Math.cos(sa), sna=Math.sin(sa);
+          var qx=lx*csa-lz*sna, qz=lx*sna+lz*csa;
+          var ex=qx*2.50, ey=ly*0.80, ez=qz*0.80;      // 团块整体放大、拉宽、不再紧扁
+          var sh=Math.sin(phSeed*4+t*2)*0.15;          // 内部扰动加大→更松散
+          var tail=-Math.pow(sN,2)*0.30;              // 外层粒子向后拖出丝尾（被水流拉扯）
+          var fr=Math.pow(sN,3)*0.42*(0.5+0.5*Math.sin(t*3+phSeed*6)); // 边缘逸散更多、更扩散
+          nx=gCX[0]+ex+sh+fr+tail; ny=gCY[0]+ey+Math.cos(phSeed*4+t*2)*0.14; nz=gCZ[0]+ez+sh;
+        } else if(modeNow==='geese'){
+          // 孤雁飞行：一只展翅大雁（薄翼后掠成V、中轴头颈与尾），翼尖扇动、整体巡航
+          var span=u*2-1, ab=Math.abs(span);
+          var body=Math.exp(-ab*ab*110);              // 中轴脊：身体/头颈
+          var thick=0.045+0.30*body;                  // 翼很薄、中轴身体沿前后拉长
+          var along=(v*2-1)*thick, sweep=0.32*ab;     // 双翼后掠，翼尖向后成V
+          var gx=span*1.45, gy=sweep+along-0.14*body; // 中轴略前移，头颈在前、尾在后
+          var flap=Math.sin(t*5)*0.6*ab;              // 扇翅，翼尖上下幅度最大
+          var flyX=Math.sin(t*0.30)*0.95, flyY=Math.sin(t*0.55)*0.30, flyZ=Math.cos(t*0.30)*0.3;
+          var gj=0.015+0.02*ab;
+          nx=gx*0.62+flyX+Math.sin(phSeed*11+t*5)*gj;
+          ny=(gy+flap)*0.62+flyY+Math.cos(phSeed*9+t*4)*gj;
+          nz=bz*0.04+flyZ+Math.sin(phSeed*8)*gj;
+        } else if(modeNow==='manta'){
+          // 魔鬼鱼：颗粒群聚成鳐鱼剪影（边缘密、内部疏），翼波传播、颗粒蓬松、边缘逸散
+          var mxx=u*2-1, mfy=v*2-1, halfW=Math.max(0.06,1-Math.abs(mfy)*0.95); // 翼更宽
+          var eN=Math.min(1,Math.abs(mxx)/halfW), eBias=Math.pow(eN,0.60);
+          mxx=(mxx<0?-1:1)*eBias*halfW;                          // 粒子偏向轮廓，去掉实心面片
+          var wav=Math.sin(mxx*3.0-t*4.5)*Math.pow(Math.abs(mxx),1.4)*0.40;  // 翼波更大更舒展
+          var glide=0.10*Math.sin(t*0.6);
+          var pJ=0.15+0.22*eN, fray=Math.pow(wSeed,3)*0.44*eN;  // 更蓬松稀疏、边缘逸散更多
+          var jx=Math.sin(phSeed*13+t*5)*pJ+fray, jy=Math.cos(phSeed*11+t*4)*pJ;
+          if(eN>0.02){ nx=mxx*2.35+jx; ny=mfy*1.22+wav+glide+jy; }           // 整体再放大、舒展
+          else { nx=mxx*0.15+jx; ny=(1.18+v*0.72)+wav*0.25+glide+jy; }
+          nz=bz*0.28+Math.sin(phSeed*7+t*3)*0.07;                           // 增厚、更立体松散
+        } else if(modeNow==='klein'){
+          // 沙漠震动波纹：面积均匀铺满、细密等距同心起伏；边缘吸收包络让波与抖动到外圈平滑归零、整齐收圆不发散
+          var Rmax=2.05, rBase=Math.sqrt(u)*Rmax, pr=rBase/Rmax, Nring=14;
+          var eS=Math.max(0,Math.min(1,(pr-0.80)/0.20)), eSS=eS*eS*(3-2*eS), eE=1-eSS; // 外圈20%向边缘吸收
+          var kw=pr*Nring*6.283185307-t*1.6;               // 细密等距同心波、缓慢外扩
+          var sw=Math.sin(kw);
+          var rEff=rBase+0.030*sw*eE;                       // 波峰极轻聚拢、近边缘归零
+          var ang=phSeed*6.283185307;
+          var jR=(wSeed-0.5)*0.020*eE, jT=(v-0.5)*0.020*eE; // 抖动近边缘一并吸收→外圈干净收圆
+          nx=Math.cos(ang)*(rEff+jR)-Math.sin(ang)*jT;
+          ny=Math.sin(ang)*(rEff+jR)+Math.cos(ang)*jT;
+          nz=0.05*sw*eE+Math.sin(phSeed*8.0+t)*0.006;       // 沙面轻微起伏
+        } else if(modeNow==='wave'){
+          // 双螺旋DNA：两条粗壮珠串骨架反相缠绕 + 随高度拧转的等距碱基横档，固定倾角立体视角、缓慢自转
+          var Hy=3.30, DR=0.66, turns=2.1, NR=Math.round(turns*5), spinA=t*0.7, tube=0.052;
+          var yy0=(u-0.5)*Hy;
+          if(wSeed<0.70){
+            // —— 骨架链：沿螺旋均匀密铺，法向加小截面成粗珠绳 ——
+            var chain=(wSeed<0.35?0:1), cph=u*turns*6.283185307+spinA+chain*3.1415926;
+            var sec=v*6.283185307, radT=tube*(0.30+1.05*(0.5+0.5*Math.sin(phSeed*5.3))), cj=0.050; // 截面羽化发散、慢速缥缈
+            nx=Math.cos(cph)*(DR+radT*Math.cos(sec))+Math.sin(phSeed*11+t*0.7)*cj;
+            ny=yy0+Math.sin(sec)*radT+Math.cos(phSeed*9+t*0.5)*cj;
+            nz=Math.sin(cph)*(DR+radT*Math.cos(sec))+Math.cos(phSeed*7-t*0.6)*cj;
+          } else {
+            // —— 碱基对：吸附到等高层，方向随高度拧转，纵深透视缩短 ——
+            var fu=Math.round(u*NR)/NR, yL=(fu-0.5)*Hy, lph=fu*turns*6.283185307+spinA;
+            var ax=Math.cos(lph)*DR, az=Math.sin(lph)*DR, bx=Math.cos(lph+3.1415926)*DR, bz=Math.sin(lph+3.1415926)*DR;
+            var k=0.08+0.84*v, rj=0.050;   // 横档粒子发散虚化
+            nx=ax+(bx-ax)*k+Math.sin(phSeed*11+t*0.6)*rj;
+            ny=yL+Math.cos(phSeed*9+t*0.4)*rj*0.7;
+            nz=az+(bz-az)*k+Math.sin(phSeed*7-t*0.5)*rj;
+          }
+          var wH=0.045;                                   // 统一慢速蓬松：各向同性羽化发虚、去实体感
+          nx+=bx*wH+Math.sin(phSeed*6.3+t*0.6)*wH*0.9;
+          ny+=by*wH+Math.cos(phSeed*4.7+t*0.5)*wH*0.9;
+          nz+=bz*wH+Math.sin(phSeed*8.1-t*0.55)*wH*0.9;
+          nz*=1.28;                          // 加深纵深，强化透视
+          var ct=0.8660, st=0.5, fy=ny*ct-nz*st, fz=ny*st+nz*ct; ny=fy; nz=fz;  // 固定~30°立体倾角
+        } else if(modeNow==='bloom'){
+          // 桃花水母(具象)：钟形伞(伞顶+一圈伞口缘膜) + 放大四叶桃花 + 伞缘先外伸再下垂的参差触手 + 4条口腕；快收慢放脉冲推进
+          var cp=(t*0.625)%1;
+          var pulse=cp<0.18?cp/0.18:1-Math.pow((cp-0.18)/0.82,1.6); pulse=Math.max(0,Math.min(1,pulse)); // 快收慢放
+          var bellR=0.98-0.36*pulse, bellH=0.56+0.34*pulse;
+          var bbob=Math.sin(t*0.5)*0.06-pulse*0.14-0.34;
+          if(u<0.34){
+            var ba=u/0.34, btheta=ba*1.52, bphi=v*6.283185307;
+            var onRim=(ba>0.84)?1:0;                        // 伞口缘膜：发散虚化、不再是清晰一圈
+            var rr2=onRim?bellR*(0.78+0.30*wSeed):bellR*Math.sin(btheta);
+            var yy2=onRim?(-0.04-0.10*wSeed):-bellH*Math.cos(btheta);
+            var bJ=0.052;
+            nx=Math.cos(bphi)*rr2+Math.sin(phSeed*13+t*0.8)*bJ;
+            ny=yy2+bbob+Math.cos(phSeed*11+t*0.6)*bJ;
+            nz=Math.sin(bphi)*rr2+Math.sin(phSeed*9-t*0.5)*bJ;
+          } else if(u<0.52){
+            // 放大四叶桃花十字（伞内中央，随伞轻收放）
+            var pIdx=Math.floor(wSeed*4), lp=v, pa=pIdx*1.5707963+t*0.45;
+            var along=Math.pow(lp,0.8)*0.44*(1-0.12*pulse), wid=0.17*(1-lp*0.3);
+            var dxp=Math.cos(pa), dyp=Math.sin(pa), ww=Math.cos(phSeed*3)*wid;
+            nx=dxp*along-dyp*ww;
+            ny=dyp*along+dxp*ww-0.20+bbob;
+            nz=Math.sin(phSeed*5)*wid*0.6;
+          } else {
+            var NT=24, idx=Math.floor(wSeed*NT), l=v;
+            var rnd2=((idx*53)%97)/97;
+            var isOral=(idx%6===0);                        // 4 条中央口腕：短、近中
+            var phiT=idx/NT*6.283185307+phSeed*0.012;
+            var rootR=isOral?bellR*0.12*(0.3+rnd2):bellR*(0.90+0.10*(((idx*11)%NT)/NT));
+            var lenT=isOral?(0.48+0.22*rnd2):(1.30+0.62*rnd2);
+            var reach=(isOral?0.05:0.22)*(1-0.55*pulse);   // 触手先外伸成伞骨、收缩时收拢
+            var radAt=rootR*(1-l*0.12)+l*reach;
+            var sway=Math.sin(t*1.1+l*3.2+idx*0.8)*0.18*l*(1+0.25*pulse);
+            var swayZ=Math.cos(t*0.95+l*2.7+idx*0.6)*0.13*l, fJ=0.050;
+            nx=Math.cos(phiT)*radAt+sway+Math.sin(phSeed*12+t*0.8)*fJ;
+            ny=l*lenT+bbob+Math.sin(t*1.6+l*5+idx)*0.022*l;
+            nz=Math.sin(phiT)*radAt+swayZ+Math.cos(phSeed*8-t*0.6)*fJ;
+          }
+          var bH=0.052;                                   // 统一慢速缥缈：整体羽化发散如烟、形态保留
+          nx+=bx*bH+Math.sin(phSeed*6.1+t*0.55)*bH*0.9;
+          ny+=by*bH+Math.cos(phSeed*4.3+t*0.45)*bH*0.9;
+          nz+=bz*bH+Math.sin(phSeed*8.7-t*0.5)*bH*0.9;
+        } else if(modeNow==='blackhole'){
+          // 黑洞：中心视界留空成黑球；光子环勾边 + 饱满盘底(带螺旋纹理) + 三旋臂亮纹，整体刚体旋转、粒子沿臂内吸
+          var Rin=0.42, Rout=1.45;
+          // 缥缈黑洞：无硬旋臂；中心视界留空 + 稀疏宽柔光晕 + 径向均匀的弥散吸积雾 + 外围尘雾逸散
+          var hz1=Math.sin(phSeed*2.3+t*0.8), hz2=Math.sin(phSeed*4.1-t*0.6), haze=0.5*(hz1+hz2);
+          if(v<0.09){
+            var pra=phSeed*6.283185+t*1.4, prr=Rin*(1.15+0.75*u)+haze*0.06;  // 光晕：占比少、拉宽变稀(不堆内圈)
+            nx=Math.cos(pra)*prr; ny=Math.sin(pra)*prr; nz=(u-0.5)*0.12+haze*0.04;
+          } else if(v<0.76){
+            var lifeD=((u-t*0.03)%1+1)%1;                                    // 吸积雾：径向近似均匀、内缘抬高防内圈过密
+            var rrD=Rout-Math.pow(lifeD,1.02)*(Rout-Rin*1.35);
+            var thD=phSeed*6.283185+rrD*0.6+t*0.7+haze*0.5;                 // 螺旋趋势极弱、haze打散→无硬臂
+            var tb=0.17*(0.4+rrD/Rout);
+            nx=Math.cos(thD)*rrD+Math.sin(phSeed*9+t*1.7)*tb;
+            ny=Math.sin(thD)*rrD+Math.cos(phSeed*7-t*1.3)*tb;
+            nz=(wSeed-0.5)*0.18*(rrD/Rout)+haze*0.05;
+          } else {
+            var drift=((u-t*0.05)%1+1)%1;                                    // 外围逸散尘雾：向外缥缈发散
+            var rrE=Rout+Math.pow(drift,1.4)*0.95;
+            var thE=phSeed*6.283185+t*0.4+haze*0.8;
+            nx=Math.cos(thE)*rrE+Math.sin(phSeed*5+t)*0.18;
+            ny=Math.sin(thE)*rrE+Math.cos(phSeed*6-t)*0.18;
+            nz=(wSeed-0.5)*0.32;
+          }
+        } else { // 鲸喷·磅礴：粗壮水柱自底部直冲高处，顶部大范围伞状穹顶炸开、伞缘水帘洒落、水汽弥漫
+          var life=(u+t*0.34)%1;
+          var angJ=v*6.283185307+life*2.0, rim=Math.min(1,wSeed/0.95);
+          var px,py,pz;
+          if(life<0.45){
+            var p=life/0.45;                                   // 上升段 0->1
+            var jr=0.22-0.07*p;                                // 根部粗壮、向上略收
+            px=Math.cos(angJ)*jr; pz=Math.sin(angJ)*jr;
+            py=1.4-p*2.2;                                      // 自底部直冲高处
+          } else {
+            var b=(life-0.45)/0.55, ease=1-Math.pow(1-b,2);   // 顶部伞状炸开
+            var spread=ease*1.7*(0.35+0.65*rim);              // 伞心窄、伞缘宽，大范围铺开
+            px=Math.cos(angJ)*spread; pz=Math.sin(angJ)*spread;
+            py=-0.8+b*b*(0.35+1.0*rim);                        // 穹顶：伞心高、伞缘抛落成水帘
+          }
+          var mist=0.04+0.12*Math.max(0,(life-0.45)/0.55);    // 顶部水汽弥漫
+          nx=px+Math.sin(phSeed*11+life*9)*mist;
+          ny=py+Math.cos(phSeed*9)*mist;
+          nz=pz+Math.cos(phSeed*7+life*9)*mist;
+        }
+        var fb=softBound(nx,ny,nz), mtx=nx+fb[0],mty=ny+fb[1],mtz=nz+fb[2];
+        if(morphE<1){ mtx=morphFrom[ix]+(mtx-morphFrom[ix])*morphE; mty=morphFrom[iy]+(mty-morphFrom[iy])*morphE; mtz=morphFrom[iz]+(mtz-morphFrom[iz])*morphE; }
+        P[ix]=mtx; P[iy]=mty; P[iz]=mtz;
+        continue;
+      }
+      // —— 径向密度重分布：corePow>1 向心聚成亮核；ring 拉向外环成圈 ——
+      var rad=baseR[i];
+      if(corePow!==1) rad=Math.pow(rad,corePow);
+      if(doRing) rad=doRing+(1-doRing)*rad;  // ring数值：越大环越细、越空心
+      var rr=rad*radiusScale*BOUND*topoR;
+      if(modeNow==='purr') rr*=1+0.065*Math.sin(t*7.5+phase[i]*2);  // 规律涟漪(加强)
+      if(audioOn) rr*=1+kickPunch*0.22*Math.pow(0.45+0.55*Math.abs(Math.sin(phase[i]*3)),1.0)+groove*0.02; // 底鼓冲击回弹
+      var ang=t*(0.3+flowSpeed)*pauseEnv+phase[i];
+      if(audioOn) ang+=snareFlick*baseR[i]*2.2+groove*0.05*baseR[i]; // 军鼓沿切向甩、卡拍微旋
+      var ex=0,ey=0,ez=0;
+      var dy=baseDir[iy];
+      if(vortexTwist){
+        // 漏斗螺旋：两极收细、中段粗；高度差速扭转形成螺旋臂
+        ang += dy*t*vortexTwist + baseR[i]*t*2.1;
+        rr*=(0.32+0.62*dy*dy);
+      } else if(modeNow==='burst'){
+        // 平时边缘参差炸毛，喷发时沿径向猛烈冲出
+        var spike=0.18+burstEnv*1.55;
+        var ej=spike*Math.pow(0.35+0.65*Math.abs(Math.sin(phase[i]*5)),1.4)*BOUND;
+        ex=baseDir[ix]*ej; ey=dy*ej; ez=baseDir[iz]*ej;
+      }
+      // —— 轴向循环流：火苗向上升腾 / 雨向下坠落，沿流向收窄 ——
+      var taper=1;
+      if(stream){
+        var h=((dy + t*stream*0.55 +1)%2)-1;   // -1..1 循环滚动
+        dy=h;
+        taper=stream>0?(1-0.45*Math.max(0,-h)):(1-0.60*Math.max(0,h));
+      }
+      var ca=Math.cos(ang), sa=Math.sin(ang);
+      var dx=baseDir[ix]*ca+baseDir[iz]*sa;
+      var dz=-baseDir[ix]*sa+baseDir[iz]*ca;
+      var shimJ=audioOn?hatShimmer*0.16:0;
+      var shx=Math.sin(phase[i]*19+t*40)*shimJ, shy=Math.cos(phase[i]*23+t*44)*shimJ, shz=Math.sin(phase[i]*17-t*38)*shimJ;
+      var jx=(Math.random()-0.5)*tremor+shx, jy=(Math.random()-0.5)*tremor+shy, jz=(Math.random()-0.5)*tremor+shz;
+      var nx=dx*rr*shapeX*taper+jx+driftX+ex+swingX+audioSwayX, ny=dy*rr*shapeY*flatY+jy+driftY+yOffset+ey, nz=dz*rr*shapeX*taper+jz+ez;
+      if(sp.tilt){ var tc=Math.cos(sp.tilt),ts=Math.sin(sp.tilt),nyT=ny*tc-nz*ts,nzT=ny*ts+nz*tc; ny=nyT; nz=nzT; }
+      var f=softBound(nx,ny,nz), mtx=nx+f[0],mty=ny+f[1],mtz=nz+f[2];
+      if(morphE<1){ mtx=morphFrom[ix]+(mtx-morphFrom[ix])*morphE; mty=morphFrom[iy]+(mty-morphFrom[iy])*morphE; mtz=morphFrom[iz]+(mtz-morphFrom[iz])*morphE; }
+      P[ix]=mtx; P[iy]=mty; P[iz]=mtz;
+    }
+
+    if(useWebGL){
+      if(points) points.rotation.y+=sp.spin+flowSpeed*0.0004;
+      geo.attributes.position.needsUpdate=true;
+      if(mat){ mat.size=skin==='swarm'?0.045+audioScale*0.03:0.10+audioScale*0.05; mat.opacity=skin==='swarm'?0.9:0.35+mappedE*0.25; }
+      renderer.render(scene,camera);
+    } else {
+      render2D();
+    }
+
+    vRaw.textContent=rawE.toFixed(2); mRaw.style.width=(rawE*100)+'%';
+    vMap.textContent=mappedE.toFixed(2); mMap.style.width=(mappedE*100)+'%';
+    var rp=Math.min(1,targetScale/0.85); vR.textContent=rp.toFixed(2); mR.style.width=(rp*100)+'%';
+    if(mode==='audio'&&t-lastInfoT>0.12){ lastInfoT=t;
+      var hitTag=kickEnv>0.45?' ▮低':(snareEnv>0.45?' ▰中':(hatEnv>0.45?' ▯高':''));
+      setState('律动 ♩'+(bpm?Math.round(bpm):'--')+' BPM'+hitTag);
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  // 皮肤切换
+  var skinBtns=document.querySelectorAll('#skinRow .skinbtn');
+  skinBtns.forEach(function(b){
+    b.addEventListener('click',function(){
+      skinBtns.forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      skin=b.dataset.skin;
+      if(useWebGL&&mat){
+        mat=skin==='swarm'?new THREE.PointsMaterial({color:0x8FD6D1,size:0.045,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false}):new THREE.PointsMaterial({color:0x7EC8C2,size:0.10,transparent:true,opacity:0.35,blending:THREE.AdditiveBlending,depthWrite:false});
+        if(points){ points.material=mat; }
+      }
+    });
+  });
+
+  // 面板折叠/展开
+  var panelWrap=document.getElementById('panelWrap');
+  function setFold(folded){
+    if(panelWrap) panelWrap.classList.toggle('folded', folded);
+  }
+  var foldBtn=document.getElementById('btnFold'), unfoldBtn=document.getElementById('btnUnfold');
+  if(foldBtn) foldBtn.addEventListener('click',function(){ setFold(true); });
+  if(unfoldBtn) unfoldBtn.addEventListener('click',function(){ setFold(false); });
+
+  // 状态预览按钮：手动锁定状态 / 随机恢复
+  var stateBtns=document.querySelectorAll('#stateRow .statebtn,#extRow .statebtn');
+  stateBtns.forEach(function(b){
+    b.addEventListener('click',function(){
+      stateBtns.forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      var s=b.dataset.state;
+      if(s==='auto'){ manualState=null; }
+      else {
+        manualState=s; if(mode!=='autonomous'){ stopAudio(); }
+        var mm=MOTION_EMOTION[s]||EXT_META[s];
+        if(mm) setState(mm.icon+' '+mm.emo);
+      }
+    });
+  });
+
+  // ========== 情绪识别 · 盲测问卷（10形态 / 可改选 / 可返回 / 最后确认）==========
+  var quizOrder=[], quizIdx=0, quizAnswers={}, quizActive=false, quizTotal=11, quizRound=1;
+  var QUIZ_OPTS=['害羞','生气','舒服','思考','难过','兴奋','心动','开心','呼噜','睡觉','恐惧'];
+  function shuffleArr(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+  // ===== 专属档案：情绪表达 × 颜色表达，本地持久化 =====
+  var PROFILE_KEY='qiling_profile_v1';
+  var SWATCHES=['#FF5A5A','#FF9F43','#FFD93D','#7BE495','#4ECDC4','#5B8FF9','#9B7BFF','#FF9EC7','#C7CDD6','#EAF6F5'];
+  var DEFAULT_EMO_COLOR={'睡觉':'#5B8FF9','恐惧':'#C7CDD6','舒服':'#7BE495','开心':'#FFD93D','难过':'#4A6CF7','生气':'#FF3838','兴奋':'#FF9F43','害羞':'#FF9EC7','心动':'#FF6FA5','思考':'#9B7BFF','呼噜':'#8BE0C4'};
+  var colorDraft={};
+  function buildBuiltinProfile(){ var p={}; MOTIONS.forEach(function(m){var emo=MOTION_EMOTION[m].emo; p[m]={emo:emo, color:DEFAULT_EMO_COLOR[emo]||'#4ECDC4'};}); return p; }
+  var BUILTIN_PROFILE=buildBuiltinProfile();
+  var userProfile=loadProfile();           // 用户自己盲测+配色后才有；否则用内置初始
+  var qProfile=userProfile||BUILTIN_PROFILE;
+  var curColor={r:143,g:214,b:209}, tgtColor={r:143,g:214,b:209}, lastColorState='';
+  function hexToRgb(h){ h=String(h).replace('#',''); if(h.length===3){h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];} var n=parseInt(h,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
+  function loadProfile(){ try{var x=localStorage.getItem(PROFILE_KEY);return x?JSON.parse(x):null;}catch(e){return null;} }
+  var DRAFT_KEY='qiling_quizdraft_v1';
+  function saveDraft(){ try{localStorage.setItem(DRAFT_KEY,JSON.stringify({answers:quizAnswers,round:quizRound}));}catch(e){} }
+  function clearDraft(){ try{localStorage.removeItem(DRAFT_KEY);}catch(e){} }
+  function loadDraft(){ try{var x=localStorage.getItem(DRAFT_KEY);return x?JSON.parse(x):null;}catch(e){return null;} }
+  function lockedCount(ans){ var n=0; for(var m in ans){var a=ans[m]; if(a&&a!=='__skip__')n++; } return n; }
+  function saveProfile(){ try{localStorage.setItem(PROFILE_KEY,JSON.stringify(qProfile));}catch(e){} }
+  function stateColorOf(m){ if(qProfile&&qProfile[m]&&qProfile[m].color) return hexToRgb(qProfile[m].color); if(EXT_COLOR&&EXT_COLOR[m]) return hexToRgb(EXT_COLOR[m]); return {r:143,g:214,b:209}; }
+  function hideAllQuizStage(){ ['quizIntro','quizQ','quizResultBox','quizColorBox','profileBox'].forEach(function(id){document.getElementById(id).classList.add('qhidden');}); }
+  // 颜色表达：为每个已锁定情绪生成一行（色块快选 + 原生取色器）
+  function openColorBox(){
+    hideAllQuizStage(); document.getElementById('quizColorBox').classList.remove('qhidden');
+    colorDraft={};
+    var box=document.getElementById('colorRows'); box.innerHTML='';
+    MOTIONS.forEach(function(m){
+      var emo=quizAnswers[m]; if(!emo||emo==='__skip__') return;
+      var emoTxt=emo.indexOf('✍')===0?emo.slice(2):emo;
+      var col=DEFAULT_EMO_COLOR[emoTxt]||'#4ECDC4'; colorDraft[m]=col;
+      var row=document.createElement('div'); row.className='crow'; row.setAttribute('data-motion',m);
+      row.style.cssText='border-bottom:1px dashed rgba(148,212,208,.15);padding:6px 0;';
+      var sw=SWATCHES.map(function(c){return '<span class="sw" data-col="'+c+'" style="display:inline-block;width:17px;height:17px;border-radius:50%;background:'+c+';margin:2px;cursor:pointer;border:2px solid '+(c.toLowerCase()===col.toLowerCase()?'#fff':'transparent')+';"></span>';}).join('');
+      row.innerHTML='<div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:3px;"><span class="cdot" style="width:13px;height:13px;border-radius:50%;background:'+col+';display:inline-block;"></span><b>'+emoTxt+'</b><span style="color:var(--dim);font-size:10px;">'+MOTION_EMOTION[m].icon+'</span></div>'
+        +'<div style="display:flex;align-items:center;flex-wrap:wrap;gap:0;">'+sw
+        +'<input type="color" class="cpick" value="'+col+'" style="width:30px;height:24px;border:none;background:transparent;padding:0;margin-left:4px;cursor:pointer;"></div>';
+      box.appendChild(row);
+    });
+  }
+  function setRowColor(row,col){
+    colorDraft[row.getAttribute('data-motion')]=col;
+    row.querySelector('.cdot').style.background=col;
+    row.querySelectorAll('.sw').forEach(function(s){s.style.borderColor=s.getAttribute('data-col').toLowerCase()===col.toLowerCase()?'#fff':'transparent';});
+    var pk=row.querySelector('.cpick'); if(pk) pk.value=col.length===7?col:'#4ECDC4';
+  }
+  function genProfileFromQuiz(){
+    qProfile={};
+    MOTIONS.forEach(function(m){
+      var emo=quizAnswers[m]; if(!emo||emo==='__skip__') return;
+      qProfile[m]={emo:(emo.indexOf('✍')===0?emo.slice(2):emo), color:colorDraft[m]||'#4ECDC4'};
+    });
+    saveProfile(); clearDraft(); userProfile=qProfile; renderProfileList();
+    hideAllQuizStage(); document.getElementById('profileBox').classList.remove('qhidden');
+    setState('🔮 专属炁灵已激活');
+  }
+  function renderProfileList(){
+    var box=document.getElementById('profileList'); box.innerHTML='';
+    MOTIONS.forEach(function(m){
+      if(!qProfile[m]) return;
+      var d=document.createElement('div');
+      d.style.cssText='display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px dashed rgba(148,212,208,.13);font-size:12px;';
+      d.innerHTML='<span style="width:15px;height:15px;border-radius:50%;background:'+d_c(m)+';flex:none;box-shadow:0 0 8px '+d_c(m)+';"></span><b style="flex:1;">'+qProfile[m].emo+'</b><span style="color:var(--dim);font-size:10px;">'+qProfile[m].color+'</span>';
+      box.appendChild(d);
+    });
+    function d_c(m){return qProfile[m].color;}
+  }
+  function resetProfile(){
+    try{localStorage.removeItem(PROFILE_KEY);}catch(e){}
+    userProfile=null; qProfile=BUILTIN_PROFILE;  // 回到内置初始，颜色不丢
+    quizStart();
+  }
+  // 暂存一个选择（不锁定、不跳转，可反复改选）
+  function quizChoose(motion,picked){
+    quizAnswers[motion]=picked;
+    document.querySelectorAll('#quizOpts .qopt').forEach(function(o){
+      o.classList.toggle('sel', o.textContent===picked);
+    });
+    if(picked.indexOf('✍')===0){ document.getElementById('quizCustom').value=picked.slice(2); }
+    quizRefreshNav(); saveDraft();
+  }
+  function quizRefreshNav(){
+    var total=quizOrder.length;
+    document.getElementById('quizPrev').disabled=(quizIdx===0);
+    var nextBtn=document.getElementById('quizNext');
+    var answered=quizAnswers[quizOrder[quizIdx]];
+    nextBtn.textContent=(quizIdx===total-1)?'✓ 确认提交，看结果':'下一题 →';
+    var done=quizOrder.filter(function(m){var a=quizAnswers[m];return a&&a!=='__skip__';}).length;
+    document.getElementById('quizAnswered').textContent='第 '+quizRound+' 轮 · 本轮已选 '+done+' / '+total+'（选了即锁定，没把握可跳过下轮再看）';
+  }
+  function quizShow(){
+    document.getElementById('quizIntro').classList.add('qhidden');
+    document.getElementById('quizResultBox').classList.add('qhidden');
+    document.getElementById('quizQ').classList.remove('qhidden');
+    var motion=quizOrder[quizIdx];
+    manualState=motion; stateName=motion; stateBlend=0; stateTimer=0;
+    if(mode!=='autonomous'){ try{stopAudio();}catch(e){} }
+    stateBtns.forEach(function(x){x.classList.remove('on');});
+    var prog='第 '+(quizIdx+1)+' / '+quizOrder.length+' 个形态（可改选、可返回）';
+    setState('🎯 盲测 · 第 '+(quizIdx+1)+'/'+quizOrder.length);
+    document.getElementById('quizProgress').textContent=prog;
+    var box=document.getElementById('quizOpts'); box.innerHTML='';
+    var saved=quizAnswers[motion];
+    shuffleArr(QUIZ_OPTS).forEach(function(emo){
+      var b=document.createElement('button');
+      b.className='qopt'+(saved===emo?' sel':''); b.textContent=emo;
+      b.addEventListener('click',function(){ quizChoose(motion,emo); });
+      box.appendChild(b);
+    });
+    // 开放式填空回显
+    var custom=document.getElementById('quizCustom');
+    custom.value=(saved&&saved.indexOf('✍')===0)?saved.slice(2):'';
+    document.getElementById('quizCustomBtn').onclick=function(){
+      var v=custom.value.trim(); if(!v){ custom.focus(); return; }
+      quizChoose(motion,'✍ '+v);
+    };
+    // 跳过：记为未答并前进
+    document.getElementById('quizSkip').onclick=function(){
+      quizAnswers[motion]='__skip__'; saveDraft(); quizGo(quizIdx+1);
+    };
+    quizRefreshNav();
+  }
+  function quizGo(i){
+    quizIdx=Math.max(0,Math.min(quizOrder.length-1,i));
+    if(quizIdx>=quizOrder.length-0 && i>=quizOrder.length){ quizFinish(); return; }
+    quizShow();
+  }
+  // 待定 = 没选或主动跳过的形态（确定的已锁定，不在此列）
+  function quizPending(){
+    return MOTIONS.filter(function(m){var a=quizAnswers[m]; return !a||a==='__skip__';});
+  }
+  function buildRows(list){
+    var hit=0, html='';
+    list.forEach(function(m){
+      var design=MOTION_EMOTION[m].emo, picked=quizAnswers[m], cls, txt;
+      if(picked==='__skip__'||!picked){ cls='no'; txt='🤔 没把握·下轮再看'; }
+      else if(picked===design){ hit++; cls='ok'; txt=picked+' ✓ 已锁定'; }
+      else if(picked.indexOf('✍')===0){ cls='no'; txt='你命名「'+picked.slice(2)+'」已锁定'; }
+      else { cls='no'; txt='你选：'+picked+'（默认：'+design+'）已锁定'; }
+      html+='<div class="row2"><span>'+MOTION_EMOTION[m].icon+' '+m+'</span><span class="'+cls+'">'+txt+'</span></div>';
+    });
+    return {html:html,hit:hit};
+  }
+  function quizFinish(){
+    quizActive=false;
+    document.getElementById('quizQ').classList.add('qhidden');
+    document.getElementById('quizResultBox').classList.remove('qhidden');
+    var pending=quizPending(), retryBtn=document.getElementById('quizRetry');
+    var confirmedN=MOTIONS.length-pending.length, scoreEl=document.getElementById('quizScore'), out, list, head;
+    if(pending.length===0){
+      // 全部锁定：输出最终专属情绪图谱（全11项）
+      out=buildRows(MOTIONS);
+      head='🎉 情绪全部锁定（'+MOTIONS.length+'/'+MOTIONS.length+'），与默认直觉吻合 '+out.hit+' 项。继续给它们配上你心里的颜色，就得到专属炁灵。';
+      retryBtn.classList.add('qhidden');
+      document.getElementById('quizColor').classList.remove('qhidden');
+      list=MOTIONS;
+    } else {
+      // 本轮结算：已锁定的不再列出；只给汇总，且不暴露待定是哪些形态（下轮还要盲测，避免泄题）
+      var newLock=quizOrder.filter(function(m){var a=quizAnswers[m];return a&&a!=='__skip__';}).length;
+      out={html:'<div style="font-size:12px;line-height:1.9;color:var(--dim);padding:4px 2px;">本轮新锁定 <b style="color:var(--acc)">'+newLock+'</b> 个 · 累计锁定 <b style="color:var(--acc)">'+confirmedN+' / '+MOTIONS.length+'</b><br>还剩 <b style="color:#e8b96b">'+pending.length+'</b> 个没把握，下一轮只出现这几个，<b>已经确定的不会再出现</b>。</div>',hit:0};
+      head='第 '+quizRound+' 轮结束 · 已锁定 '+confirmedN+' / '+MOTIONS.length+'，还有 '+pending.length+' 个没把握';
+      retryBtn.classList.remove('qhidden');
+      document.getElementById('quizColor').classList.add('qhidden');
+      retryBtn.textContent='🔁 没把握的 '+pending.length+' 个再来一轮（已锁定的不再出现）';
+    }
+    scoreEl.textContent=head;
+    document.getElementById('quizResult').innerHTML=out.html;
+    setState(pending.length===0?('🎯 全部锁定 · 吻合 '+out.hit+'/'+MOTIONS.length):('🎯 第'+quizRound+'轮 · 锁定 '+confirmedN+'/'+MOTIONS.length));
+  }
+  // 只重测没把握的，已锁定答案原样保留
+  function quizRetryPending(){
+    var pend=quizPending();
+    if(pend.length===0) return;
+    pend.forEach(function(m){ delete quizAnswers[m]; });  // 清掉旧的跳过标记，干净重测
+    quizRound++;
+    quizOrder=shuffleArr(pend); quizIdx=0; quizActive=true;
+    saveDraft(); quizShow();
+  }
+  // 全部重测：清空所有锁定，从第1轮11个重来
+  function quizStart(){
+    clearDraft();
+    quizOrder=shuffleArr(MOTIONS).slice(0,quizTotal); quizIdx=0; quizAnswers={}; quizActive=true; quizRound=1;
+    var rb=document.getElementById('quizRetry'); if(rb) rb.classList.remove('qhidden');
+    var cb=document.getElementById('quizColor'); if(cb) cb.classList.add('qhidden');
+    quizShow();
+  }
+  function resumeQuiz(){
+    var d=loadDraft();
+    if(!d||!d.answers){ return quizStart(); }
+    quizAnswers=d.answers||{}; quizRound=d.round||1;
+    var pend=MOTIONS.filter(function(m){var a=quizAnswers[m];return !a||a==='__skip__';});
+    document.getElementById('quizIntro').classList.add('qhidden');
+    if(pend.length===0){ quizOrder=MOTIONS.slice(); quizFinish(); return; }
+    quizOrder=shuffleArr(pend); quizIdx=0; quizActive=true; quizShow();
+  }
+  document.getElementById('quizStart').addEventListener('click',quizStart);
+  document.getElementById('quizResume').addEventListener('click',resumeQuiz);
+  document.getElementById('quizAgain').addEventListener('click',quizStart);
+  document.getElementById('quizRetry').addEventListener('click',quizRetryPending);
+  document.getElementById('quizColor').addEventListener('click',openColorBox);
+  document.getElementById('colorBack').addEventListener('click',function(){
+    document.getElementById('quizColorBox').classList.add('qhidden');
+    document.getElementById('quizResultBox').classList.remove('qhidden');
+  });
+  document.getElementById('genProfile').addEventListener('click',genProfileFromQuiz);
+  document.getElementById('profileReset').addEventListener('click',resetProfile);
+  document.getElementById('colorRows').addEventListener('click',function(e){
+    if(e.target.classList.contains('sw')){ var row=e.target.closest('.crow'); if(row) setRowColor(row,e.target.getAttribute('data-col')); }
+  });
+  document.getElementById('colorRows').addEventListener('input',function(e){
+    if(e.target.classList.contains('cpick')){ var row=e.target.closest('.crow'); if(row) setRowColor(row,e.target.value); }
+  });
+  // 启动：已有档案→档案卡；否则有未完成草稿→显示“继续上次”
+  (function(){
+    if(userProfile){ renderProfileList(); document.getElementById('quizIntro').classList.add('qhidden'); document.getElementById('profileBox').classList.remove('qhidden'); return; }
+    // 内置初始：不弹档案卡，粒子已按你的情绪+颜色起舞；只在有未完成草稿时给“继续”
+    var d=loadDraft();
+    if(d&&d.answers&&lockedCount(d.answers)>0){
+      var rb=document.getElementById('quizResume');
+      rb.classList.remove('qhidden');
+      rb.textContent='▶ 继续上次校准（已锁定 '+lockedCount(d.answers)+' / '+MOTIONS.length+'）';
+    }
+  })();
+  // 档案导出 / 导入（跨链接、跨设备迁移，避免版本更新后白做）
+  document.getElementById('profileExport').addEventListener('click',function(){
+    var ta=document.getElementById('profileIO'); ta.classList.remove('qhidden');
+    ta.value=JSON.stringify(qProfile); ta.select(); document.getElementById('profileImportDo').classList.add('qhidden');
+  });
+  document.getElementById('profileImportBtn').addEventListener('click',function(){
+    var ta=document.getElementById('profileIO'); ta.classList.remove('qhidden'); ta.value=''; ta.focus();
+    document.getElementById('profileImportDo').classList.remove('qhidden');
+  });
+  document.getElementById('profileImportDo').addEventListener('click',function(){
+    try{ qProfile=JSON.parse(document.getElementById('profileIO').value); saveProfile(); userProfile=qProfile; renderProfileList(); setState('🔮 档案已导入'); }
+    catch(e){ alert('档案码格式不对，请把导出的整段重新粘贴'); }
+  });
+  document.getElementById('quizPrev').addEventListener('click',function(){ quizGo(quizIdx-1); });
+  document.getElementById('quizNext').addEventListener('click',function(){
+    if(quizIdx===quizOrder.length-1){ quizFinish(); } else { quizGo(quizIdx+1); }
+  });
+
+  // 交互：拖拽旋转（WebGL）/ 滚轮缩放
+  var isDown=false, lx=0, ly=0, rotX=0, rotY=0;
+  function onDown(e){ isDown=true; lx=e.clientX; ly=e.clientY; }
+  function onMove(e){
+    if(!isDown) return;
+    rotY+=(e.clientX-lx)*0.005; rotX+=(e.clientY-ly)*0.005;
+    lx=e.clientX; ly=e.clientY;
+    if(useWebGL&&points){ points.rotation.x=rotX; points.rotation.y=rotY; }
+  }
+  function onUp(){ isDown=false; }
+  var cv=useWebGL?(renderer&&renderer.domElement):glCanvas;
+  if(cv){ cv.addEventListener('mousedown',onDown); window.addEventListener('mouseup',onUp); window.addEventListener('mousemove',onMove); }
+  window.addEventListener('wheel',function(e){
+    if(useWebGL&&camera) camera.position.z=Math.max(2.2,Math.min(10,camera.position.z+e.deltaY*0.005));
+  });
+  window.addEventListener('resize',function(){
+    W=window.innerWidth;H=window.innerHeight;
+    if(useWebGL){ camera.aspect=W/H;camera.updateProjectionMatrix(); renderer.setSize(W,H); }
+    else { glCanvas.width=W; glCanvas.height=H; }
+  });
+
+  // 自动演示模式：?automusic=1 播放名曲，?autobeat=1 播放节拍器，?state=swimming 锁定状态预览
+  var qs=location.search;
+  var mState=qs.match(/[?&]state=(\w+)/);
+  if(mState && MOTIONS.concat(EXT_MOTIONS).indexOf(mState[1])>-1){
+    manualState=mState[1];
+    setTimeout(function(){ try{ setState('自主 · '+mState[1]); }catch(e){} }, 300);
+  }
+  if(/[?&]automusic=1/.test(qs)){
+    setTimeout(function(){ try{ startMusic(); }catch(e){} }, 400);
+  } else if(/[?&]autobeat=1/.test(qs)){
+    setTimeout(function(){ try{ startBeat(); }catch(e){} }, 400);
+  }
+
+  // ===== 分组卡片折叠：每个分组头常驻，折叠后点头条即可再展开（整体面板另有常驻 ⚙控制 按钮）=====
+  function makeGroup(title, els){
+    var grp=document.createElement('div'); grp.className='cgroup';
+    var head=document.createElement('button'); head.type='button'; head.className='chead';
+    head.innerHTML='<span class="car">▾</span><span>'+title+'</span>';
+    var body=document.createElement('div'); body.className='cbody';
+    var anchor=els[0]; anchor.parentNode.insertBefore(grp,anchor);
+    els.forEach(function(e){ body.appendChild(e); });
+    grp.appendChild(head); grp.appendChild(body);
+    head.addEventListener('click',function(){ var col=grp.classList.toggle('collapsed'); head.querySelector('.car').textContent=col?'▸':'▾'; });
+    return grp;
+  }
+  (function buildFold(){
+    var songRow=document.querySelector('#panel .row');
+    makeGroup('🎵 音频输入', [$('btnMusic'),songRow,$('btnBeat'),$('btnUpload'),$('btnMic'),$('fileInput')]);
+    var emoTitle=$('stateRow').previousElementSibling;
+    makeGroup('💗 情绪预览', [emoTitle,$('stateRow')]);
+    var extTitle=$('extRow').previousElementSibling;
+    makeGroup('🧪 扩展形态库', [extTitle,$('extRow')]);
+    var skinTitle=$('skinRow').previousElementSibling;
+    var rows=document.querySelectorAll('#panel .row'); // 曲目行已移入音频组，余下即灵敏度/边界
+    makeGroup('🎛 外观 · 参数', [skinTitle,$('skinRow'),rows[1],rows[2]]);
+    // 双向约束卡片也可折叠
+    var bw=$('boundwrap'); if(bw){
+      var h=bw.querySelector('h4'), body=document.createElement('div'); body.className='cbody';
+      var kids=Array.prototype.slice.call(bw.children).filter(function(x){return x!==h;});
+      kids.forEach(function(k){body.appendChild(k);}); bw.appendChild(body);
+      h.classList.add('chead'); var car=document.createElement('span'); car.className='car'; car.textContent='▾'; h.insertBefore(car,h.firstChild);
+      h.addEventListener('click',function(){var col=bw.classList.toggle('collapsed'); car.textContent=col?'▸':'▾';});
+    }
+  })();
+
+  update();
+})();
+</script>
+</script>
+</body>
+</html>

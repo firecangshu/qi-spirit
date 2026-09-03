@@ -1,0 +1,21 @@
+# 过程截图与临时验证图
+*.png
+*.jpg
+*.jpeg
+
+# 历史过程版本 / 调试文件
+qiling_1.0_standalone.html
+qiling_1.1_standalone.html
+qiling_1.2_standalone.html
+qiling_1.3_standalone.html
+qiling_dbg.html
+qiling_emotion_standalone.html
+qiling_quiz_standalone.html
+dbg.html
+
+# 临时脚本
+*.py
+
+# 系统文件
+.DS_Store
+Thumbs.db
