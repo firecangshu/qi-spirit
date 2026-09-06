@@ -196,7 +196,6 @@
     <button class="statebtn" data-state="wave">🧬 双螺旋DNA</button>
     <button class="statebtn" data-state="engulf">💦 鲸喷</button>
     <button class="statebtn" data-state="blackhole">🕳 黑洞</button>
-    <button class="statebtn" data-state="firefly">✨ 萤火虫</button>
   </div>
   <div style="margin:6px 0 4px;font-size:11px;color:var(--dim);">视觉皮肤</div>
   <div id="skinRow">
@@ -213,6 +212,7 @@
     <button class="particlebtn" data-particle="matteplate"><span class="thumb"></span><span class="lbl">柔性哑光金属</span></button>
     <button class="particlebtn" data-particle="cellplate"><span class="thumb"></span><span class="lbl">多孔细胞甲片</span></button>
     <button class="particlebtn" data-particle="fiber"><span class="thumb"></span><span class="lbl">光纤种子</span></button>
+    <button class="particlebtn" data-particle="firefly"><span class="thumb" style="background-image:radial-gradient(circle at 50% 45%,#FFF3B0 0%,#C8E86A 45%,rgba(20,40,20,0) 78%);"></span><span class="lbl">萤火虫</span></button>
     <button class="particlebtn" data-particle="jelly"><span class="thumb"></span><span class="lbl">桃花水母</span></button>
   </div>
   <div class="row"><label>响应灵敏度</label><input type="range" id="sensitivity" min="0.2" max="2" step="0.1" value="1"><output>1.0</output></div>
@@ -668,7 +668,7 @@ var PARTICLE_IMG={
   }
   function applyTextureToMaterial(material, skinName, stateName){
     // 若用户手动锁定某素材，优先使用；否则按皮肤+形态自动映射
-    var key=(stateName==='firefly')?'firefly':(currentParticleKey!=='auto'?currentParticleKey:resolveTextureKey(skinName, stateName));
+    var key=currentParticleKey!=='auto'?currentParticleKey:resolveTextureKey(skinName, stateName);
     var tex=PARTICLE_TEXTURES[key];
     if(!tex) return;
     // 主路径：自定义 ShaderMaterial（逐粒子尺寸/旋转/渐变）
@@ -945,7 +945,7 @@ var PARTICLE_IMG={
   };
   var MOTIONS=['breathing','vibrating','swimming','expanding','sinking','burst','vortex','implode','pulse','thinking','purring'];
   // ---- 扩展形态库：只做形态模拟与手动预览，不进自主调度/盲测/情绪档案 ----
-  var EXT_MOTIONS=['tornado','school','manta','klein','wave','engulf','blackhole','firefly'];
+  var EXT_MOTIONS=['tornado','school','manta','klein','wave','engulf','blackhole'];
   var EXT_META={
     tornado:{emo:'龙卷风',  icon:'🌪'},
     school: {emo:'沙丁鱼群',icon:'🐟'},
@@ -954,10 +954,9 @@ var PARTICLE_IMG={
     klein:  {emo:'水波纹',icon:'💧'},
     wave:   {emo:'双螺旋DNA',icon:'🧬'},
     engulf: {emo:'鲸喷',    icon:'💦'},
-    blackhole:{emo:'黑洞',  icon:'🕳'},
-    firefly:  {emo:'萤火虫',icon:'✨'}
+    blackhole:{emo:'黑洞',  icon:'🕳'}
   };
-  var EXT_COLOR={tornado:'#A9C3D2',school:'#58C8E6',geese:'#FFB454',manta:'#B98CFF',klein:'#7BE0D6',wave:'#74E3FF',engulf:'#4F7CF0',blackhole:'#FFB04A',firefly:'#D9F27E'};
+  var EXT_COLOR={tornado:'#A9C3D2',school:'#58C8E6',geese:'#FFB454',manta:'#B98CFF',klein:'#7BE0D6',wave:'#74E3FF',engulf:'#4F7CF0',blackhole:'#FFB04A'};
 
   function pickNextState(){
     return MOTIONS[Math.floor(Math.random()*MOTIONS.length)];
@@ -1015,8 +1014,6 @@ var PARTICLE_IMG={
         p.mode='vortex'; p.flow=1.8; p.spin=0.010; p.sink=-0.20; p.angular=2; p.label=tag; break;
       case 'implode':     // 害羞：极小极密的亮核，向内缩、像把自己藏起来
         p.mode='implode'; p.corePow=2.4; p.flow=0.10; p.spin=0.001; p.label=tag; break;
-      case 'firefly':     // 萤火虫：固定悬停+闪烁，少数个体带彗尾飞行（位置由 ffHome 覆盖）
-        p.mode='flow'; p.flow=0; p.spin=0; p.tremor=0; p.label=tag; break;
       case 'pulse':       // 心动：水平同心环，随心跳节律一圈圈向外扩
         p.mode='pulse'; p.ring=0.88; p.flatY=0.32; p.flow=0.12; p.spin=0.0032; p.label=tag; break;
       case 'thinking':    // 思考：倾斜的宽轨道环、缓慢、走走停停、留有核心
@@ -1583,7 +1580,7 @@ var PARTICLE_IMG={
     }
 
     // 萤火虫模式：大部分个体固定悬停在空中（不随形态运动），只有微颤与闪烁
-    if(stateName==='firefly'){
+    if(currentParticleKey==='firefly'){
       if(!ffHome){
         ffHome=new Float32Array(COUNT*3);
         for(var fi=0;fi<COUNT;fi++){
@@ -1629,13 +1626,13 @@ var PARTICLE_IMG={
       }
     }
     if(useWebGL){
-      if(points&&stateName!=='firefly') points.rotation.y+=sp.spin+flowSpeed*0.0004; // 萤火虫模式冻结自转，个体真正固定
+      if(points&&currentParticleKey!=='firefly') points.rotation.y+=sp.spin+flowSpeed*0.0004; // 萤火虫模式冻结自转，个体真正固定
       geo.attributes.position.needsUpdate=true;
       if(mat){
         if(mat.isShaderMaterial){
           // ShaderMaterial 路径：逐粒子属性已由 attribute 承担，只更新全局 uniform
           var u=mat.uniforms;
-          var _k=(stateName==='firefly')?'firefly':(currentParticleKey!=='auto'?currentParticleKey:resolveTextureKey(skin,stateName));
+          var _k=currentParticleKey!=='auto'?currentParticleKey:resolveTextureKey(skin,stateName);
           var _tex=PARTICLE_TEXTURES[_k];
           var _cfg=_tex?PARTICLE_RENDER[_tex.name]:null;
           u.uColor.value.setRGB(curColor.r/255, curColor.g/255, curColor.b/255);
@@ -1770,9 +1767,7 @@ var PARTICLE_IMG={
   // 支持 ?pt=粒子素材 直达（如 ?pt=firefly 直看萤火虫）
   (function(){
     var pm=(location.search.match(/[?&]pt=(\w+)/)||[])[1];
-    if(pm==='firefly'){ // 萤火虫已是扩展形态：?pt=firefly 自动转为形态切换
-      setTimeout(function(){ var b=document.querySelector('#extRow .statebtn[data-state="firefly"]'); if(b)b.click(); },400);
-    }else if(pm){
+    if(pm){
       currentParticleKey=pm;
       setTimeout(function(){ var b=document.querySelector('.particlebtn[data-particle="'+pm+'"]'); if(b)b.click(); },400);
     }
@@ -2222,6 +2217,7 @@ if(panel && !panel.dataset.uipro){
   var trIn=trRow.querySelector('input');
   trIn.addEventListener('input',function(){
     window.trailRatio=parseFloat(trIn.value);
+    window.__trOverride=undefined;
     trRow.querySelector('output').textContent=Math.round(window.trailRatio*100)+'%';
     try{localStorage.setItem('ql_trail',trIn.value);}catch(e){}
   });
