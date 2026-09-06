@@ -2529,7 +2529,9 @@ var PARTICLE_IMG={
         var jc=((t/jper)+js)%1;
         var jth=(jc<0.3)?Math.sin(jc/0.3*Math.PI):0;
         var jwa=t*0.05+js*37.0;
-        var jpow=jth*(0.5+0.5*js);
+        var _sen=1; try{ _sen=parseFloat(document.getElementById('sensitivity').value)||1; }catch(e){}
+        var beatPulse=(mode==='audio')?Math.min(1,(kickEnv*0.7+beatEnv*0.45)*_sen):0;
+        var jpow=jth*(0.5+0.5*js)*(1+beatPulse*1.2);
         jjVel[j3]+=Math.cos(jwa)*0.35*jpow*0.014;
         jjVel[j3+1]+=0.85*jpow*0.014;
         jjVel[j3+2]+=Math.sin(jwa)*0.35*jpow*0.014;
