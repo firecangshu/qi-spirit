@@ -1556,8 +1556,8 @@ var PARTICLE_IMG={
         '  if(uBlink>0.5){',
         '    float per=5.0+4.0*fract(vSeed*3.71);',                                      // 周期 5~9 秒（Photinus pyralis 典型值）
         '    float cyc=fract(uTime/per+vSeed);',
-        '    float gate=step(fract(vSeed*5.53),0.30);',                                  // 仅三成个体带呼吸底光
-        '    float breathe=(0.02+0.04*sin(uTime*(0.5+1.7*fract(vSeed*7.31))+vTint*6.2832))*gate;',
+        '    float gate=step(fract(vSeed*5.53),0.55);',                                  // 过半个体带呼吸底光（形体可读）
+        '    float breathe=(0.04+0.08*sin(uTime*(0.5+1.7*fract(vSeed*7.31))+vTint*6.2832))*gate;',
         '    float kind=fract(vSeed*9.17);',                                             // 物种级闪光模式
         '    float g1=smoothstep(0.0,0.015,cyc)*(1.0-smoothstep(0.015,0.12,cyc));',      // 快起慢衰单闪
         '    float g2=smoothstep(0.28,0.30,cyc)*(1.0-smoothstep(0.30,0.42,cyc));',
@@ -1602,7 +1602,7 @@ var PARTICLE_IMG={
     material.needsUpdate=true;
   }
   // ===== 萤火虫特效：飞行个体 + 链式拖尾（链上光点逐节缓动跟随，形成天然弧线光迹）=====
-  var FF_MAX=4500, FF_G=12;
+  var FF_MAX=4500, FF_G=7;
   var ffPts=null, ghPts=null, ffGeo=null, ghGeo=null, ffMat=null, ghMat=null;
   var ffPos=null, ffSeed=null, ghPos=null, ghTA=null;
   function initFirefly(){
@@ -1650,7 +1650,7 @@ var PARTICLE_IMG={
     ghGeo.setAttribute('position',new THREE.BufferAttribute(ghPos,3));
     ghGeo.setAttribute('aT',new THREE.BufferAttribute(ghTA,1));
     ghMat=new THREE.ShaderMaterial({
-      uniforms:{uTime:{value:0},uScale:{value:450},uSize:{value:0.11},uColor:{value:new THREE.Color(0xFFE9A8)},uOpacity:{value:0.5}},
+      uniforms:{uTime:{value:0},uScale:{value:450},uSize:{value:0.10},uColor:{value:new THREE.Color(0xFFE9A8)},uOpacity:{value:0.32}},
       vertexShader:[
         'attribute float aT; varying float vT;',
         'uniform float uScale; uniform float uSize;',
@@ -1689,7 +1689,7 @@ var PARTICLE_IMG={
     ghMat.uniforms.uTime.value=t; ghMat.uniforms.uScale.value=scl;
     ghMat.uniforms.uSize.value=0.13*_ps*(1+beatPulse*0.4);
     ghMat.uniforms.uColor.value.setRGB(curColor.r/255,curColor.g/255,curColor.b/255);
-    ghMat.uniforms.uOpacity.value=0.5*(1+beatPulse*0.6);
+    ghMat.uniforms.uOpacity.value=0.32*(1+beatPulse*0.6);
     for(var i=0;i<F;i++){
       var s1=ffSeed[i], s2=(s1*7.13)%1, s3=(s1*3.71)%1;
       var R=0.85+0.55*s2;
@@ -1701,7 +1701,7 @@ var PARTICLE_IMG={
       ffPos[ix]+=(wx-ffPos[ix])*0.03; ffPos[ix+1]+=(wy-ffPos[ix+1])*0.03; ffPos[ix+2]+=(wz-ffPos[ix+2])*0.03;
       var px=ffPos[ix], py=ffPos[ix+1], pz=ffPos[ix+2];
       for(var j=0;j<FF_G;j++){
-        var kj=0.34*Math.pow(0.80,j);   // 头快尾慢：光迹拉长成弧形彗尾
+        var kj=0.36*Math.pow(0.72,j);   // 头快尾慢：短彗尾
         var k=(i*FF_G+j)*3;
         ghPos[k]+=(px-ghPos[k])*kj; ghPos[k+1]+=(py-ghPos[k+1])*kj; ghPos[k+2]+=(pz-ghPos[k+2])*kj;
         px=ghPos[k]; py=ghPos[k+1]; pz=ghPos[k+2];
@@ -1839,7 +1839,7 @@ var PARTICLE_IMG={
   var subV=0, lowmV=0, himidV=0, kickEnv=0, snareEnv=0, hatEnv=0, fluxV=0, centroid=0.5;
   var bpm=0, beatPhase=0, lastKickT=-1, lastSnareT=-1, lastHatT=-1, kickGapEma=0, lastInfoT=0;
   var beatCount=0, danceMotif=0, envBuf=null, envHead=0, envFill=0, bpmCheckT=0, envT=0, __lastAn=0; // 节拍网格与编舞状态
-  var ffHome=null; // 萤火虫模式：固定悬停位置
+  var ffCur=null; // 萤火虫模式：缓动追随位置（低跟随率=悬停迟滞，可联动形态切换）
   var jjSeed=null, jjVel=null; // 桃花水母模式：脉冲推进状态
   var beatEnv=0, fluxMean=0, lastBeatT=-1, beatGapEma=0, eMean=0;
   var prevMag=null, bandMean=null;
@@ -2496,22 +2496,18 @@ var PARTICLE_IMG={
 
     // 萤火虫模式：大部分个体固定悬停在空中（不随形态运动），只有微颤与闪烁
     if(currentParticleKey==='firefly'){
-      if(!ffHome){
-        ffHome=new Float32Array(COUNT*3);
-        for(var fi=0;fi<COUNT;fi++){
-          var fr=1.25*Math.cbrt(Math.random()), ft2=Math.random()*6.2832, fp=Math.acos(2*Math.random()-1);
-          ffHome[fi*3]=fr*Math.sin(fp)*Math.cos(ft2);
-          ffHome[fi*3+1]=fr*Math.cos(fp)*0.75;
-          ffHome[fi*3+2]=fr*Math.sin(fp)*Math.sin(ft2);
-        }
+      if(!ffCur){
+        ffCur=new Float32Array(COUNT*3);
+        for(var fi=0;fi<COUNT*3;fi++){ ffCur[fi]=P[fi]; } // 初始就地就位
       }
       for(var fj=0;fj<COUNT;fj++){
         var f3=fj*3, fw=0.012;
         var fjx=Math.sin(t*(0.6+(fj%7)*0.13)+fj)*fw+Math.sin(t*0.11+fj*0.7)*0.05;   // 微颤+缓慢漂移
         var fjy=Math.cos(t*(0.5+(fj%5)*0.17)+fj*1.3)*fw+Math.cos(t*0.09+fj*1.1)*0.04;
-        P[f3]+=(ffHome[f3]+fjx-P[f3])*0.06;
-        P[f3+1]+=(ffHome[f3+1]+fjy-P[f3+1])*0.06;
-        P[f3+2]+=(ffHome[f3+2]-P[f3+2])*0.06;
+        ffCur[f3]+=(P[f3]+fjx-ffCur[f3])*0.04;       // 低跟随率：悬停迟滞，形态切换时群体缓慢重排
+        ffCur[f3+1]+=(P[f3+1]+fjy-ffCur[f3+1])*0.04;
+        ffCur[f3+2]+=(P[f3+2]-ffCur[f3+2])*0.04;
+        P[f3]=ffCur[f3]; P[f3+1]=ffCur[f3+1]; P[f3+2]=ffCur[f3+2];
       }
     }
     // 桃花水母模式：有约束的脉冲动力学——收缩推进窗（快）→被动漂移→轻微下沉，禁锢在云团球内
@@ -3125,7 +3121,7 @@ if(panel && !panel.dataset.uipro){
     try{localStorage.setItem('ql_speed',spdIn.value);}catch(e){}
   });
   /* 拖尾占比（萤火虫模式：带光迹飞行的个体比例，4%~30%） */
-  window.trailRatio=parseFloat((function(){try{return localStorage.getItem('ql_trail');}catch(e){return null;}})()||'0.12');
+  window.trailRatio=parseFloat((function(){try{return localStorage.getItem('ql_trail');}catch(e){return null;}})()||'0.06');
   var trRow=mk('div','row');
   trRow.innerHTML='<label title=\"萤火虫模式下，带拖尾光迹飞行的个体占比\">拖尾占比</label><input type="range" id="trailAmt" min="0" max="0.5" step="0.01" value="'+window.trailRatio+'"><output>'+Math.round(window.trailRatio*100)+'%</output>';
   gPt.querySelector('.cbody').appendChild(trRow);
