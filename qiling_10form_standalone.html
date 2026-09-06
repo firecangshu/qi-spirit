@@ -195,7 +195,6 @@
     <button class="statebtn" data-state="klein">💧 水波纹</button>
     <button class="statebtn" data-state="wave">🧬 双螺旋DNA</button>
     <button class="statebtn" data-state="engulf">💦 鲸喷</button>
-    <button class="statebtn" data-state="bloom">🌸 桃花水母</button>
     <button class="statebtn" data-state="blackhole">🕳 黑洞</button>
     <button class="statebtn" data-state="firefly">✨ 萤火虫</button>
   </div>
@@ -214,6 +213,7 @@
     <button class="particlebtn" data-particle="matteplate"><span class="thumb"></span><span class="lbl">柔性哑光金属</span></button>
     <button class="particlebtn" data-particle="cellplate"><span class="thumb"></span><span class="lbl">多孔细胞甲片</span></button>
     <button class="particlebtn" data-particle="fiber"><span class="thumb"></span><span class="lbl">光纤种子</span></button>
+    <button class="particlebtn" data-particle="jelly"><span class="thumb"></span><span class="lbl">桃花水母</span></button>
   </div>
   <div class="row"><label>响应灵敏度</label><input type="range" id="sensitivity" min="0.2" max="2" step="0.1" value="1"><output>1.0</output></div>
   <div class="row"><label>边界半径</label><input type="range" id="boundR" min="1.5" max="4" step="0.1" value="2.6"><output>2.6</output></div>
@@ -1430,6 +1430,7 @@ var PARTICLE_IMG={
     metalfoil: {count:340,  size:0.40, opacity:0.95, additive:0},
     matteplate:{count:400,  size:0.32, opacity:0.92, additive:0},
     cellplate: {count:480,  size:0.30, opacity:0.92, additive:0},
+    jelly:     {count:800,  size:0.42, opacity:0.55, additive:0},
     firefly:   {count:9000, size:0.08, opacity:0.35, additive:1, blink:1}
   };
   function loadParticleTextures(){
@@ -1849,7 +1850,7 @@ var PARTICLE_IMG={
   };
   var MOTIONS=['breathing','vibrating','swimming','expanding','sinking','burst','vortex','implode','pulse','thinking','purring'];
   // ---- 扩展形态库：只做形态模拟与手动预览，不进自主调度/盲测/情绪档案 ----
-  var EXT_MOTIONS=['tornado','school','manta','klein','wave','engulf','bloom','blackhole','firefly'];
+  var EXT_MOTIONS=['tornado','school','manta','klein','wave','engulf','blackhole','firefly'];
   var EXT_META={
     tornado:{emo:'龙卷风',  icon:'🌪'},
     school: {emo:'沙丁鱼群',icon:'🐟'},
@@ -1858,11 +1859,10 @@ var PARTICLE_IMG={
     klein:  {emo:'水波纹',icon:'💧'},
     wave:   {emo:'双螺旋DNA',icon:'🧬'},
     engulf: {emo:'鲸喷',    icon:'💦'},
-    bloom:    {emo:'桃花水母',icon:'🌸'},
     blackhole:{emo:'黑洞',  icon:'🕳'},
     firefly:  {emo:'萤火虫',icon:'✨'}
   };
-  var EXT_COLOR={tornado:'#A9C3D2',school:'#58C8E6',geese:'#FFB454',manta:'#B98CFF',klein:'#7BE0D6',wave:'#74E3FF',engulf:'#4F7CF0',bloom:'#FF8FBC',blackhole:'#FFB04A',firefly:'#D9F27E'};
+  var EXT_COLOR={tornado:'#A9C3D2',school:'#58C8E6',geese:'#FFB454',manta:'#B98CFF',klein:'#7BE0D6',wave:'#74E3FF',engulf:'#4F7CF0',blackhole:'#FFB04A',firefly:'#D9F27E'};
 
   function pickNextState(){
     return MOTIONS[Math.floor(Math.random()*MOTIONS.length)];
