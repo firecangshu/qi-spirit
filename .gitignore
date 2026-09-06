@@ -29,3 +29,4 @@ _backup_*/
 .DS_Store
 Thumbs.db
 _chk*.js
+_err.log
