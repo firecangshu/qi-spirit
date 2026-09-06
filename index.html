@@ -1592,7 +1592,7 @@ var PARTICLE_IMG={
     material.needsUpdate=true;
   }
   // ===== 萤火虫特效：飞行个体 + 链式拖尾（链上光点逐节缓动跟随，形成天然弧线光迹）=====
-  var FF_MAX=2700, FF_G=12;
+  var FF_MAX=4500, FF_G=12;
   var ffPts=null, ghPts=null, ffGeo=null, ghGeo=null, ffMat=null, ghMat=null;
   var ffPos=null, ffSeed=null, ghPos=null, ghTA=null;
   function initFirefly(){
@@ -3072,7 +3072,7 @@ if(panel && !panel.dataset.uipro){
   /* 粒子大小全局缩放（40%~200%，对所有素材生效） */
   window.particleSize=parseFloat((function(){try{return localStorage.getItem('ql_size');}catch(e){return null;}})()||'1');
   var sizeRow=mk('div','row');
-  sizeRow.innerHTML='<label>粒子大小</label><input type="range" id="sizeAmt" min="0.4" max="2" step="0.05" value="'+window.particleSize+'"><output>'+Math.round(window.particleSize*100)+'%</output>';
+  sizeRow.innerHTML='<label>粒子大小</label><input type="range" id="sizeAmt" min="0" max="1" step="0.05" value="'+window.particleSize+'"><output>'+Math.round(window.particleSize*100)+'%</output>';
   gPt.querySelector('.cbody').appendChild(sizeRow);
   var sa=sizeRow.querySelector('input');
   sa.addEventListener('input',function(){
@@ -3083,7 +3083,7 @@ if(panel && !panel.dataset.uipro){
   /* 变化速度：控制粒子运动与形变的快慢（0.2x~2x） */
   window.particleSpeed=parseFloat((function(){try{return localStorage.getItem('ql_speed');}catch(e){return null;}})()||'1');
   var spdRow=mk('div','row');
-  spdRow.innerHTML='<label>变化速度</label><input type="range" id="speedAmt" min="0.2" max="2" step="0.05" value="'+window.particleSpeed+'"><output>'+window.particleSpeed+'x</output>';
+  spdRow.innerHTML='<label>变化速度</label><input type="range" id="speedAmt" min="0" max="2" step="0.05" value="'+window.particleSpeed+'"><output>'+window.particleSpeed+'x</output>';
   gPt.querySelector('.cbody').appendChild(spdRow);
   var spdIn=spdRow.querySelector('input');
   spdIn.addEventListener('input',function(){
@@ -3094,7 +3094,7 @@ if(panel && !panel.dataset.uipro){
   /* 拖尾占比（萤火虫模式：带光迹飞行的个体比例，4%~30%） */
   window.trailRatio=parseFloat((function(){try{return localStorage.getItem('ql_trail');}catch(e){return null;}})()||'0.12');
   var trRow=mk('div','row');
-  trRow.innerHTML='<label title=\"萤火虫模式下，带拖尾光迹飞行的个体占比\">拖尾占比</label><input type="range" id="trailAmt" min="0.04" max="0.3" step="0.01" value="'+window.trailRatio+'"><output>'+Math.round(window.trailRatio*100)+'%</output>';
+  trRow.innerHTML='<label title=\"萤火虫模式下，带拖尾光迹飞行的个体占比\">拖尾占比</label><input type="range" id="trailAmt" min="0" max="0.5" step="0.01" value="'+window.trailRatio+'"><output>'+Math.round(window.trailRatio*100)+'%</output>';
   gPt.querySelector('.cbody').appendChild(trRow);
   var trIn=trRow.querySelector('input');
   trIn.addEventListener('input',function(){
