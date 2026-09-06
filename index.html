@@ -2988,6 +2988,7 @@ var CSS=[
 '#panelHead h4{font-size:11px !important;letter-spacing:2.5px !important;color:#7FC9C4 !important;margin:0 !important;font-weight:600 !important;}',
 '#btnFold{background:rgba(148,212,208,.10) !important;border:1px solid rgba(148,212,208,.25) !important;color:#A8DCD7 !important;border-radius:7px !important;}',
 '#btnFold:hover{background:rgba(148,212,208,.22) !important;}',
+'.emoCard{box-shadow:0 10px 32px rgba(0,0,0,.4) !important;}',
 '.cgroup{background:rgba(9,22,21,.55);border:1px solid rgba(148,212,208,.12);border-radius:11px;margin-bottom:7px;overflow:hidden;transition:border-color .2s ease,background .2s ease;}',
 '.cgroup:hover{border-color:rgba(148,212,208,.28);}',
 '.chead{display:flex !important;align-items:center;gap:8px;width:100%;padding:9px 12px !important;background:transparent !important;border:none !important;color:#A8DCD7 !important;font-size:11.5px !important;font-weight:600 !important;letter-spacing:.8px !important;cursor:pointer !important;text-align:left !important;font-family:inherit !important;margin:0 !important;}',
@@ -3090,7 +3091,7 @@ if(panel && !panel.dataset.uipro){
       colorBox.appendChild(cell);
     });
   }
-  var gColor=makeGroup('color','🎨 情绪颜色',false,[colorBox]);
+  var gColor=makeGroup('color','🎨 色彩',false,[colorBox]);
   /* 随机度滑杆 */
   var randRow=mk('div','row');
   randRow.innerHTML='<label title="每颗粒子之间的尺寸/明暗差异。0=完全均匀，越大颗粒越参差">颗粒差异</label><input type="range" id="randAmt" min="0" max="1" step="0.05" value="'+window.particleRand+'"><output>'+Math.round(window.particleRand*100)+'%</output>';
@@ -3154,7 +3155,11 @@ if(panel && !panel.dataset.uipro){
     }
   });
   [].slice.call(panel.children).forEach(function(c){if(c!==head)panel.removeChild(c);});
-  [gEmo,gExt,gPt,gColor,gAudio,gParam].forEach(function(g){panel.appendChild(g);});
+  [gPt,gColor,gParam,gExt,gAudio].forEach(function(g){panel.appendChild(g);});
+  /* 情绪独立：情绪预览卡移出面板，固定在左侧盲测卡下方 */
+  gEmo.style.position='fixed'; gEmo.style.left='16px'; gEmo.style.top='150px';
+  gEmo.style.width='254px'; gEmo.style.zIndex=10;
+  document.body.appendChild(gEmo);
 }
 
 /* ---- 盲测卡收起/展开 ---- */
