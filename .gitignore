@@ -2,6 +2,8 @@
 *.png
 *.jpg
 *.jpeg
+# 粒子素材是交付资产，必须入库
+!assets/**/*.png
 
 # 历史过程版本 / 调试文件
 qiling_1.0_standalone.html
@@ -12,6 +14,13 @@ qiling_dbg.html
 qiling_emotion_standalone.html
 qiling_quiz_standalone.html
 dbg.html
+_fold_test.html
+_textures_dataurl.js
+
+# 过程产物目录
+.playwright-cli/
+_shots/
+_backup_*/
 
 # 临时脚本
 *.py
