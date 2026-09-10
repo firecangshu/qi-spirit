@@ -1569,7 +1569,7 @@ var PARTICLE_IMG={
         '  }',
         '  gl_PointSize=uSize*sz*vBlinkSize*jPulse*uScale/max(0.1,-mv.z);',
         '  float rr=length(position)/max(0.15,uCloudR);',
-        '  vEdge=1.0-smoothstep(0.72,1.32,rr);',
+        '  vEdge=1.0-0.60*smoothstep(0.72,1.32,rr);',   // 边缘保底 40%：之前渐隐到 0 造成形态边缘发黑
         '  vDepth=clamp((-mv.z-3.5)/7.0,0.0,1.0);',
         '  gl_Position=projectionMatrix*mv;',
         '}'
@@ -1610,6 +1610,7 @@ var PARTICLE_IMG={
         '  }',
         '  float tw=vTint*uRand;',
         '  vec3 col=mix(uColor,uColor2,tw*0.6);',
+        '  col=mix(col,vec3(0.93,0.96,1.0),0.38);',   // 银色涂层：情绪色成为银身上的染色，黑底上永有金属光泽的身体（发光/实体两路共用）
         '  float vA=1.0-0.25*tw;',
         '  if(uAdd>0.5){',
         '    vec3 lit=col*t.r*t.a*uOpacity*vA*vEdge*blink;',
