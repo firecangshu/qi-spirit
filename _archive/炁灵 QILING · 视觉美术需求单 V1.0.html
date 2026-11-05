@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>炁灵 QILING · 视觉美术需求单 V1.0</title>
+<style>
+  :root{
+    --bg:#0B1B1A; --panel:#10292780; --card:#12302E; --line:#2c504c;
+    --acc:#8FD4D0; --acc2:#5FC8E8; --warm:#FFB04A; --pink:#FF8FBC;
+    --txt:#E8F4F2; --dim:#9DBBB7; --p1:#7BE0D6; --p2:#B98CFF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#143b38 0%,var(--bg) 60%);
+       color:var(--txt);font-family:'PingFang SC','Microsoft YaHei','Segoe UI',Arial,sans-serif;
+       line-height:1.65;font-size:14px;padding:32px 18px 80px;}
+  .wrap{max-width:980px;margin:0 auto;}
+  header.cover{border:1px solid var(--line);border-radius:18px;padding:30px 32px;
+    background:linear-gradient(135deg,rgba(143,212,208,.10),rgba(95,200,232,.04));margin-bottom:22px;}
+  .kicker{letter-spacing:4px;color:var(--acc);font-size:12px;font-weight:700;}
+  h1{font-size:30px;margin:8px 0 6px;letter-spacing:1px;}
+  h1 small{font-size:15px;color:var(--dim);font-weight:400;letter-spacing:0;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:14px;color:var(--dim);font-size:13px;}
+  .meta b{color:var(--txt);font-weight:600;}
+  section{border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:16px 0;background:rgba(18,48,46,.35);}
+  h2{font-size:19px;margin:0 0 14px;display:flex;align-items:center;gap:10px;}
+  h2 .no{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;
+    background:var(--acc);color:#06231f;font-size:14px;font-weight:800;flex:0 0 auto;}
+  h3{font-size:15px;color:var(--acc);margin:18px 0 8px;}
+  p{margin:8px 0;color:#d4e7e4;}
+  .dim{color:var(--dim);}
+  .grid{display:grid;gap:12px;}
+  .g3{grid-template-columns:repeat(3,1fr);} .g2{grid-template-columns:repeat(2,1fr);}
+  .mini{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card);}
+  .mini h4{margin:0 0 6px;font-size:14px;color:var(--acc2);}
+  .mini p{margin:4px 0;font-size:13px;}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:#16403d;color:#dff6f3;font-weight:700;white-space:nowrap;}
+  td.fill{background:rgba(255,255,255,.025);min-width:74px;height:30px;}
+  tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+  .tag{display:inline-block;padding:1px 9px;white-space:nowrap;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--line);}
+  .t-must{background:rgba(255,176,74,.16);color:var(--warm);border-color:#7a5a28;}
+  .t-opt{background:rgba(143,212,208,.10);color:var(--acc);}
+  .swatch{display:inline-block;width:13px;height:13px;border-radius:3px;vertical-align:-2px;margin-right:5px;border:1px solid rgba(255,255,255,.25);}
+  .callout{border-left:3px solid var(--warm);background:rgba(255,176,74,.08);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;}
+  .callout.cyan{border-color:var(--acc);background:rgba(143,212,208,.08);}
+  ul{margin:8px 0;padding-left:20px;} li{margin:5px 0;}
+  .chk{list-style:none;padding-left:4px;} .chk li::before{content:"☐ ";color:var(--acc);font-weight:800;}
+  .badge{font-size:11px;padding:1px 8px;border-radius:6px;background:#16403d;color:var(--acc);margin-left:6px;}
+  code{background:#0a201e;padding:1px 6px;border-radius:5px;font-size:12px;color:#bfeee9;}
+  .step{counter-reset:s;display:grid;gap:10px;}
+  footer{color:var(--dim);font-size:12px;text-align:center;margin-top:26px;}
+  @media (max-width:720px){.g3,.g2{grid-template-columns:1fr;}}
+  @media print{
+    body{background:#fff;color:#111;font-size:11.5px;padding:0;}
+    section,header.cover{background:#fff;border-color:#bbb;break-inside:avoid;}
+    h1,h2,h3,.mini h4{color:#0b3b37;} th{background:#e6efee;color:#0b3b37;}
+    th,td{border-color:#bbb;} .dim,p,li,td{color:#222;}
+    .callout{background:#faf3e6;} .callout.cyan{background:#eef7f6;}
+    a{color:#111;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="cover">
+    <div class="kicker">QILING · ART ASSET BRIEF</div>
+    <h1>炁灵 QILING 视觉美术需求单 <small>V1.0</small></h1>
+    <div>音频驱动的「数字生命」粒子体 · 视觉质感升级与美化 · 供美术师对照准备</div>
+    <div class="meta">
+      <span>项目：<b>炁灵 QILING Web Demo</b></span>
+      <span>提出日期：<b>2026-09-04</b></span>
+      <span>对接：<b>产品 / 程序（杨博）</b></span>
+      <span>当前版本：<b>1.0（功能已通，待视觉升级）</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="no">0</span>一页看懂：这是什么、要做什么</h2>
+    <p><b>炁灵</b>是一团由约 9000 个粒子聚合而成的「数字生物」：没有音频时它会自己呼吸、游弋、震动；接入音乐后随节拍、能量和旋律舞动。目前功能已经跑通，包含 <b>11 种情绪形态</b> 和 <b>8 种扩展形态</b>，但视觉上还是「纯色硬圆点」，偏裸、缺电影感。本次目标：<b>在不改变交互与形态逻辑的前提下，把视觉质感做出冲击力</b>。</p>
+    <div class="callout cyan">
+      <b>分工边界（重要）：</b>美术师<b>不需要写代码、不需要做程序嵌入</b>。你只负责产出「素材 + 视觉规范」（粒子贴图、色板、参考图、风格基调）；程序侧负责把它们接入渲染管线（贴图映射、渐变上色、辉光/后期）。运动和形态归程序，<b>质感、颜色、光感归美术</b>。
+    </div>
+    <div class="callout">
+      <b>贯穿始终的一条红线：</b>无论多亮多美，炁灵必须是<b>离散的粒子群</b>——颗粒聚合而成，<b>不能出现实心连续面 / 固体块 / 硬线条</b>。要的是「如烟似雾、会发光的颗粒生命」，不是一个光滑实体模型。
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="no">1</span>需要交付的 6 类内容总览</h2>
+    <table>
+      <tr><th style="width:34px;">#</th><th>交付物</th><th>一句话说明</th><th style="width:90px;">优先级</th><th style="width:120px;">建议工期</th></tr>
+      <tr><td>1</td><td><b>粒子贴图 Sprite</b></td><td>单颗粒子的质感形状（软光点 / 尘 / 金属屑 / 水沫…），灰度透明 PNG</td><td><span class="tag t-must">必须 · 核心</span></td><td>第一批</td></tr>
+      <tr><td>2</td><td><b>配色表 Palette</b></td><td>11 情绪 + 8 形态的主色/辅色/辉光色，及能量强弱的颜色过渡</td><td><span class="tag t-must">必须 · 核心</span></td><td>第一批起</td></tr>
+      <tr><td>3</td><td><b>形态/情绪参考图</b></td><td>每种情绪与形态「应长成什么样」的静态剪影 / 构图 / moodboard</td><td><span class="tag t-must">必须</span></td><td>第二批</td></tr>
+      <tr><td>4</td><td><b>动态参考视频/GIF</b></td><td>呼吸、聚散、翻涌、流动的真实动态参考（水母、鱼群、烟尘、星云）</td><td><span class="tag t-opt">重要</span></td><td>第二批</td></tr>
+      <tr><td>5</td><td><b>光影基调 / 成片风格图</b></td><td>1–2 张「最终想要的画面感觉」，定辉光、景深、暗角、整体调性</td><td><span class="tag t-must">第一批 1 张</span></td><td>第一批</td></tr>
+      <tr><td>6</td><td><b>背景 / 环境 / UI（可选）</b></td><td>深空 / 星云 / 中心光 / 控制面板视觉语言</td><td><span class="tag t-opt">可选</span></td><td>第三批</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="no">2</span>第一批「最小启动包」——先做这 3 样，立刻看效果</h2>
+    <p>不必一次全做。先交以下三样，程序接入后即可看到第一波明显提升，确认方向再批量推进：</p>
+    <div class="grid g3">
+      <div class="mini"><h4>① 通用柔光粒子贴图 ×1</h4><p>256×256 透明 PNG，黑底、中心亮、向边缘平滑羽化的软光点（详见第 3 节）。</p></div>
+      <div class="mini"><h4>② 4 个代表情绪主色板</h4><p>先做：开心 / 恐惧 / 难过 / 平静，各给主色 + 辉光色 HEX（详见第 4 节）。</p></div>
+      <div class="mini"><h4>③ 目标成片风格主图 ×1</h4><p>你心中「炁灵最终画面感」的一张参考，定整体光影调性（详见第 7 节）。</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="no">3</span>粒子贴图详细规范（最关键）</h2>
+    <p>现在每个粒子是一个硬边小圆点，这是「廉价感」的主要来源。把它替换成带羽化、带质感的发光软粒子，画面立刻高级。</p>
+    <h3>3.1 通用制作规格</h3>
+    <ul>
+      <li><b>尺寸：</b>正方形，边长用 2 的幂——优先 <b>256×256</b>，复杂质感可 512，简单光点 128 也可。</li>
+      <li><b>颜色：</b>主交付为<b>黑白灰度图（只给亮度/形状，不要上彩色）</b>。颜色由程序按情绪实时叠加，这样一张贴图能变出全部颜色；如想额外给彩色质感版可另存，不替代灰度版。</li>
+      <li><b>背景：</b>纯黑底（#000000）或直接用 Alpha 透明通道；亮部即粒子本体。</li>
+      <li><b>边缘：</b>必须<b>平滑羽化衰减到 0</b>，严禁硬边圆圈；中心可有一个更亮的「核」，外圈是柔和光晕。</li>
+      <li><b>格式：</b>PNG-32（带 Alpha）；单张居中、四周留约 8% 边距，避免光晕被裁切。</li>
+      <li><b>风格倾向：</b>细腻、有微弱颗粒/絮状纹理更佳，但整体要柔、要透，不能是一团死白。</li>
+    </ul>
+    <h3>3.2 需要的材质清单（先做第 1 张，其余按批次）</h3>
+    <table>
+      <tr><th>文件名</th><th>材质</th><th>形态描述（灰度）</th><th>预计用在哪</th></tr>
+      <tr><td><code>particle_softglow_256.png</code></td><td>柔光尘（通用）</td><td>中心亮核 + 大范围柔和羽化光晕，最百搭</td><td>默认 / 全部情绪</td></tr>
+      <tr><td><code>particle_stardust_256.png</code></td><td>星尘</td><td>亮核外带 2–4 道极淡十字/斜向星芒</td><td>兴奋、心动、黑洞</td></tr>
+      <tr><td><code>particle_metalfoil_256.png</code></td><td>金属碎箔</td><td>不规则小碎屑、边缘略锐、有高光点，非圆形</td><td>流体金属皮肤</td></tr>
+      <tr><td><code>particle_foam_256.png</code></td><td>水沫</td><td>松散不规则小泡、中空或环形、轻盈</td><td>水波纹、鲸喷、水母</td></tr>
+      <tr><td><code>particle_smoke_256.png</code></td><td>烟絮</td><td>絮状、拉丝、无明确中心、最柔最透</td><td>龙卷风、黑洞、恐惧</td></tr>
+      <tr><td><code>particle_ember_256.png</code></td><td>火星</td><td>小亮核 + 拖尾方向感、暖色质感（仍交灰度）</td><td>生气、黑洞</td></tr>
+      <tr><td><code>particle_fiber_128.png</code></td><td>光纤细点</td><td>极小、锐利亮点，几乎无光晕</td><td>DNA、思考、精密感形态</td></tr>
+    </ul>
+    <div class="callout">每张交付时可附一张「黑底摆放 20 个」的效果预览图，方便判断重复平铺后会不会看出规律或结块。</div>
+  </section>
+
+  <section>
+    <h2><span class="no">4</span>配色表 A：11 种情绪（请在空格填 HEX）</h2>
+    <p class="dim">每种给 3 个色：<b>主色</b>（粒子主体）、<b>辅色</b>（渐变/混色，可与主色过渡）、<b>辉光色</b>（Bloom 光晕，通常更亮更饱和）。「气质关键词」是该情绪当前的运动感觉，供你找色时对齐；可在备注写颜色随能量强弱的变化思路。</p>
+    <table>
+      <tr><th style="width:86px;">情绪</th><th style="width:200px;">气质 / 动态关键词</th><th>主色</th><th>辅色</th><th>辉光色</th><th>备注（冷暖过渡/意象）</th></tr>
+      <tr><td>😴 睡觉</td><td>缓慢一张一缩、低能量、安睡</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>📳 恐惧</td><td>高频细碎震动、向内收缩、紧绷</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>🐟 舒服</td><td>如鱼游弋、悠哉、流畅摆尾</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>💥 开心</td><td>向外扩散、明亮、轻盈上扬</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>⬇ 难过</td><td>下沉、迟滞、向内坍、低饱和</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>💢 生气</td><td>爆发、迸溅、急促、有攻击性</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>🌀 兴奋</td><td>高速旋涡、能量上扬、雀跃</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>☺️ 害羞</td><td>向内聚拢、小幅度、腼腆收着</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>💓 心动</td><td>周期性脉冲、一跳一跳、怦然</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>💭 思考</td><td>沿轨道缓行、走走停停、理性</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>😺 呼噜</td><td>细密轻颤、放松、满足的微震动</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+    </table>
+    <p class="dim">另请给一条<b>全局能量色谱</b>：当音乐能量从「弱 → 强」时，颜色如何过渡（例如冷青 → 暖金），给 3–5 个锚点 HEX 即可：<span class="fill" style="display:inline-block;min-width:520px;">&nbsp;</span></p>
+  </section>
+
+  <section>
+    <h2><span class="no">5</span>配色表 B：8 种扩展形态（已预填当前色，可优化）</h2>
+    <table>
+      <tr><th style="width:110px;">形态</th><th>视觉描述</th><th>当前主色</th><th>优化主色</th><th>辅色</th><th>辉光色</th></tr>
+      <tr><td>🌪 龙卷风</td><td>接地尘卷、螺旋丝束、缥缈如烟</td><td><span class="swatch" style="background:#A9C3D2"></span>#A9C3D2</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>🐟 沙丁鱼群</td><td>聚成拉长鱼带、成群拉扯巡游</td><td><span class="swatch" style="background:#58C8E6"></span>#58C8E6</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>🐠 魔鬼鱼</td><td>舒展菱形鳐鱼、翼波滑翔</td><td><span class="swatch" style="background:#B98CFF"></span>#B98CFF</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>💧 水波纹</td><td>沙漠震动式细密同心肌理、匀称发散</td><td><span class="swatch" style="background:#7BE0D6"></span>#7BE0D6</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>🧬 双螺旋 DNA</td><td>细长双螺旋 + 碱基横档、烟雾感</td><td><span class="swatch" style="background:#74E3FF"></span>#74E3FF</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>🌊 鲸喷</td><td>自下而上大气喷发、散开洒落</td><td><span class="swatch" style="background:#4F7CF0"></span>#4F7CF0</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>🌸 桃花水母</td><td>圆伞 + 下垂触手、粉色烟雾感</td><td><span class="swatch" style="background:#FF8FBC"></span>#FF8FBC</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>🕳 黑洞</td><td>中心黑球 + 缥缈弥散吸积雾、外逸</td><td><span class="swatch" style="background:#FFB04A"></span>#FFB04A</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="no">6</span>形态 / 情绪参考图清单</h2>
+    <p>每个对象给 1–3 张参考图，帮助程序把形态参数调到「一眼对味」。每张请用小字标注它参考的是<b>「形 / 色 / 光」中的哪一项</b>。</p>
+    <div class="grid g2">
+      <div class="mini"><h4>情绪侧（11 项）</h4><p>偏抽象意象：如「开心=绽放的烟花/向上光斑」「难过=下沉的冷色尘」「恐惧=向内收紧的颤抖碎点」。可用插画、摄影、抽象艺术、自然现象截图。</p></div>
+      <div class="mini"><h4>形态侧（8 项）</h4><p>偏具象剪影：龙卷风、沙丁鱼群（bait ball）、魔鬼鱼、水面沙纹、DNA、鲸喷、桃花水母、黑洞。优先<b>真实摄影或高质量粒子特效截图</b>，重点看疏密分布与外轮廓。</p></div>
+    </div>
+    <h3>特别需要重点找参考的 4 个（最影响观感）</h3>
+    <ul>
+      <li><b>黑洞：</b>要「虚无缥缈的粒子集合 + 向外发散」，不要硬旋臂线条，参考星云 / 吸积盘的柔和版本。</li>
+      <li><b>桃花水母：</b>要具象可辨但如烟似雾，参考真实桃花水母（Craspedacusta）的伞与触手比例。</li>
+      <li><b>沙丁鱼群：</b>参考 bait ball / 鱼群被拉扯成带的画面，体现「聚而不挤、拉扯流动」。</li>
+      <li><b>水波纹：</b>参考沙漠震动 / 均匀细密同心沙纹，要匀称、泛化、无清晰线条。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="no">7</span>光影基调（成片风格图）与后期方向</h2>
+    <p>给 1–2 张「最终想要的画面感觉」主图，并就以下维度各标一个倾向（可圈选）：</p>
+    <table>
+      <tr><th style="width:130px;">维度</th><th>请选择 / 描述</th></tr>
+      <tr><td>整体明暗</td><td>☐ 深空纯黑　☐ 深青暗调　☐ 雾面深灰　☐ 其他：______</td></tr>
+      <tr><td>辉光 Bloom</td><td>☐ 强（霓虹光晕明显）　☐ 中　☐ 弱（克制）　参考强度图：______</td></tr>
+      <tr><td>景深 DoF</td><td>☐ 要（中心实、外围虚）　☐ 不要（全局清晰）</td></tr>
+      <tr><td>氛围叠加</td><td>☐ 暗角　☐ 胶片颗粒　☐ 轻微色差　☐ 体积光　☐ 都不要</td></tr>
+      <tr><td>粒子通透感</td><td>叠加发光（越叠越亮）的程度偏好：______；是否要中心最亮、边缘渐隐：______</td></tr>
+      <tr><td>参考主图</td><td class="fill">附 1–2 张，并标注「学它的什么」</td></tr>
+    </table>
+    <h3>背景 / 环境（可选）</h3>
+    <ul>
+      <li>☐ 纯黑即可　☐ 微弱星云/噪点底　☐ 中心径向光源　☐ 空间纵深网格　☐ 地面反射</li>
+      <li>若给背景图：1920×1080、深色、低对比，不能抢主体；同样保持整体「颗粒 / 虚无」气质。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="no">8</span>动态参考清单（视频 / GIF）</h2>
+    <p>静态图决定长相，动态参考决定「气质」。每段 10–15 秒，注明是否循环、快慢、节奏感觉：</p>
+    <table>
+      <tr><th>对应</th><th>建议找的真实素材</th><th>关注的动态参数</th></tr>
+      <tr><td>呼吸/睡觉</td><td>水母缓慢收缩、云层呼吸</td><td>周期长短、收放缓动（慢收慢放 or 快收慢放）</td></tr>
+      <tr><td>鱼群/舒服</td><td>沙丁鱼群游动、鳐鱼滑翔</td><td>整体摆尾速度、转向流畅度</td></tr>
+      <tr><td>恐惧/生气</td><td>受惊鸟群、火星迸溅、湍流</td><td>抖动频率、爆发与回落曲线</td></tr>
+      <tr><td>龙卷风/黑洞</td><td>尘卷风、星云旋转、烟</td><td>旋转速度梯度、粒子上吸/外逸速度</td></tr>
+      <tr><td>水母/鲸喷</td><td>真实水母推进、鲸喷水柱</td><td>脉冲节奏、触手拖曳、喷发散开方式</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="no">9</span>技术红线与验收标准（交付前自检）</h2>
+    <ul class="chk">
+      <li>所有粒子贴图为灰度/Alpha、黑底、边缘羽化，无硬边、无死白一团</li>
+      <li>尺寸为 2 的幂（128/256/512），单颗粒居中、四周留约 8% 边距</li>
+      <li>所有色值给标准 HEX（如 #8FD4D0），并标明主/辅/辉光用途</li>
+      <li>任何参考与成品方向都保持「离散粒子群」，无实心连续面、无固体感、无硬线条</li>
+      <li>深背景优先以衬托辉光；同时存在「关闭后期也清晰」的保守版本意识</li>
+      <li>同类材质风格统一（亮核尺度、羽化程度一致），混看不违和</li>
+      <li>文件按下表规范命名，分文件夹打包，附一份「素材说明.txt」列出清单</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="no">10</span>交付规范与节奏</h2>
+    <h3>文件命名</h3>
+    <ul>
+      <li>粒子贴图：<code>particle_材质_尺寸.png</code>，例：<code>particle_softglow_256.png</code></li>
+      <li>参考图：<code>ref_对象_序号.jpg</code>，例：<code>ref_blackhole_01.jpg</code>、<code>ref_emotion_happy_01.jpg</code></li>
+      <li>动态参考：<code>mov_对象_序号.mp4/gif</code>；配色表：<code>palette_qiling_v1.xlsx</code>（或 Figma 链接）</li>
+    </ul>
+    <h3>目录结构（打包时）</h3>
+    <p><code>/01_particle 粒子贴图　/02_palette 配色　/03_ref_form 形态参考　/04_ref_motion 动态参考　/05_look 光影背景　/素材说明.txt</code></p>
+    <h3>交付批次</h3>
+    <table>
+      <tr><th>批次</th><th>内容</th><th>目标</th></tr>
+      <tr><td>第一批（MVP）</td><td>通用柔光贴图 ×1 + 4 情绪色板 + 成片风格主图 ×1</td><td>快速验证质感方向</td></tr>
+      <tr><td>第二批</td><td>全部 7 种材质贴图 + 11 情绪/8 形态完整色板 + 形态参考图</td><td>全量美化接入</td></tr>
+      <tr><td>第三批</td><td>动态参考视频 + 背景/环境 + UI 视觉（可选）</td><td>成片级打磨</td></tr>
+    </table>
+    <div class="callout cyan">协作方式：每批交付后程序接入并回一张实际运行截图，双方对照微调，避免一次性大批量返工。有任何「程序能不能实现」的疑问，先按理想效果做，再由程序判断落地方式。</div>
+  </section>
+
+  <footer>炁灵 QILING · 视觉美术需求单 V1.0 · 2026-09-04 · 程序侧负责素材接入，美术侧专注质感 / 颜色 / 光感</footer>
+</div>
+</body>
+</html>
